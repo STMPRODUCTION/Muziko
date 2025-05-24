@@ -28,6 +28,25 @@ const KEY_SIGNATURES = {
     "Cb": { notes: [1, 3, 5, 6, 8, 10, 0], accidentals: [1, 3, 5, 6, 8, 10, 0] }
 };
 
+// Enharmonic spelling rules for each key signature
+const ENHARMONIC_SPELLINGS = {
+    "C": { 0: "c", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "f", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "G": { 0: "c", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "f", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "D": { 0: "c", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "f", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "A": { 0: "c", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "f", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "E": { 0: "c", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "f", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "B": {0: "C", 1: "C#", 2: "D", 3: "D#", 4: "E", 5: "E#", 6: "F#", 7: "F##", 8: "G#", 9: "A", 10: "A#", 11: "B"},
+    "F#": { 0: "b#", 1: "c#", 2: "d", 3: "d#", 4: "e", 5: "e#", 6: "f#", 7: "g", 8: "g#", 9: "a", 10: "a#", 11: "b" },
+    "C#": { 0: "b#", 1: "c#", 2: "c##", 3: "d#", 4: "d##", 5: "e#", 6: "f#", 7: "f##", 8: "g#", 9: "g##", 10: "a#", 11: "a##" },
+    "F": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "e", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "b" },
+    "Bb": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "e", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "b" },
+    "Eb": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "e", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "b" },
+    "Ab": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "e", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "b" },
+    "Db": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "e", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "cb" },
+    "Gb": { 0: "c", 1: "db", 2: "d", 3: "eb", 4: "fb", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "cb" },
+    "Cb": { 0: "cb", 1: "db", 2: "d", 3: "eb", 4: "fb", 5: "f", 6: "gb", 7: "g", 8: "ab", 9: "a", 10: "bb", 11: "cb" }
+};
+
 let currentExercise = [];
 let currentIndex = 0;
 let currentClef = "treble";
@@ -49,31 +68,31 @@ function getVexflowKey(midiNote, keySignature) {
     const pitchClass = midiNote % 12;
     const octave = Math.floor(midiNote / 12) - 1;
 
-    const NOTE_LETTERS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const NATURAL_LETTERS = ['c', 'c', 'd', 'd', 'e', 'f', 'f', 'g', 'g', 'a', 'a', 'b'];
+    const spellings = ENHARMONIC_SPELLINGS[keySignature];
+    let noteName = spellings[pitchClass];
 
-    const keyManager = new KeyManager(keySignature);
-    const actualNote = NOTE_LETTERS[pitchClass];  // e.g., F#
-    const baseNote = NATURAL_LETTERS[pitchClass]; // e.g., f
-
-    const corrected = keyManager.selectNote(baseNote); // { note: 'f', accidental: '#' } for G major
-
-    // Compute what the key signature expects for this note
-    const expectedPitchClass = (NOTE_LETTERS.indexOf(corrected.note.toUpperCase()) +
-        (corrected.accidental === '#' ? 1 :
-         corrected.accidental === 'b' ? -1 : 0) + 12) % 12;
-
-    // Only add accidental if actual pitch differs from expected
-    let accidental = '';
-    if (expectedPitchClass !== pitchClass) {
-        const diff = (pitchClass - expectedPitchClass + 12) % 12;
-        if (diff === 1) accidental = '#';
-        else if (diff === 11) accidental = 'b';
+    if (!noteName) {
+        console.warn(`Missing enharmonic spelling for pitch class ${pitchClass} in key ${keySignature}`);
+        noteName = NOTE_NAMES[pitchClass]; // fallback
     }
 
-    const finalNote = corrected.note + accidental;
-    return `${finalNote}/${octave}`;
+    noteName = noteName.charAt(0).toUpperCase() + noteName.slice(1);
+    return `${noteName}/${octave}`;
 }
+
+function buildEnharmonicSpelling(key) {
+    const scale = buildScale(key); // e.g., B major
+    const mapping = {};
+
+    for (let i = 0; i < scale.length; i++) {
+        const pitch = scale[i];
+        const expectedLetter = "CDEFGAB"[i % 7];
+        mapping[pitch % 12] = expectedLetter + getAccidental(pitch, expectedLetter);
+    }
+
+    return mapping;
+}
+
 
 function generateScaleNotes(keySignature, octaveStart, octaveEnd) {
     const keyInfo = KEY_SIGNATURES[keySignature];
@@ -87,6 +106,23 @@ function generateScaleNotes(keySignature, octaveStart, octaveEnd) {
     }
 
     return scaleNotes;
+}
+
+function validateEnharmonicSpellings() {
+    const keyNames = Object.keys(ENHARMONIC_SPELLINGS);
+    const missingNotes = {};
+
+    for (const key of keyNames) {
+        const spellings = ENHARMONIC_SPELLINGS[key];
+        for (let pitchClass = 0; pitchClass < 12; pitchClass++) {
+            if (!spellings[pitchClass]) {
+                if (!missingNotes[key]) missingNotes[key] = [];
+                missingNotes[key].push(pitchClass);
+            }
+        }
+    }
+
+    console.table(missingNotes);
 }
 
 function generateRandomExercise() {
@@ -154,8 +190,6 @@ function drawNotes(notes, correctCount = 0, wrongIndex = -1) {
 
     if (!notes.length) return;
 
-    const keyManager = new KeyManager(currentKey);
-
     const staveNotes = notes.map((noteObj, i) => {
         const key = noteObj.vexflow;
         if (!key || typeof key !== "string") {
@@ -163,15 +197,68 @@ function drawNotes(notes, correctCount = 0, wrongIndex = -1) {
             return null;
         }
 
-        const [notePart, octavePart] = key.split('/');
-        const { note, accidental } = keyManager.selectNote(notePart);
+        const vfNote = new StaveNote({ keys: [key], duration: "q", clef: currentClef });
 
-        const formattedKey = `${note}/${octavePart}`;
-        const vfNote = new StaveNote({ keys: [formattedKey], duration: "q", clef: currentClef });
-
-        // Only add the accidental if needed
-        if (accidental) {
-            vfNote.addModifier(new Accidental(accidental), 0);
+        // Check if the note has an accidental and if it needs to be displayed
+        const [notePart] = key.split('/');
+        const hasAccidental = notePart.includes('#') || notePart.includes('b');
+        
+        if (hasAccidental) {
+            const accidental = notePart.includes('#') ? '#' : 'b';
+            const accidentalCount = (notePart.match(/#/g) || notePart.match(/b/g) || []).length;
+            
+            let accidentalSymbol = accidental;
+            if (accidentalCount === 2) {
+                accidentalSymbol = accidental === '#' ? '##' : 'bb';
+            }
+            
+            // Determine if this accidental should be shown
+            const noteWithoutAccidental = notePart.replace(/#/g, '').replace(/b/g, '');
+            
+            let shouldShowAccidental = true;
+            
+            // Define the order of sharps and flats as they appear in key signatures
+            const sharpOrder = ['f', 'c', 'g', 'd', 'a', 'e', 'b'];
+            const flatOrder = ['b', 'e', 'a', 'd', 'g', 'c', 'f'];
+            
+            // Map each key to its number of sharps or flats
+            const keySignatureMap = {
+                'C': { type: 'natural', count: 0 },
+                'G': { type: 'sharp', count: 1 },
+                'D': { type: 'sharp', count: 2 },
+                'A': { type: 'sharp', count: 3 },
+                'E': { type: 'sharp', count: 4 },
+                'B': { type: 'sharp', count: 5 },
+                'F#': { type: 'sharp', count: 6 },
+                'C#': { type: 'sharp', count: 7 },
+                'F': { type: 'flat', count: 1 },
+                'Bb': { type: 'flat', count: 2 },
+                'Eb': { type: 'flat', count: 3 },
+                'Ab': { type: 'flat', count: 4 },
+                'Db': { type: 'flat', count: 5 },
+                'Gb': { type: 'flat', count: 6 },
+                'Cb': { type: 'flat', count: 7 }
+            };
+            
+            const keyInfo = keySignatureMap[currentKey];
+            
+            if (accidental === '#' && keyInfo.type === 'sharp') {
+                // Check if this note letter is already sharped in the key signature
+                const noteIndex = sharpOrder.indexOf(noteWithoutAccidental.toLowerCase());
+                if (noteIndex !== -1 && noteIndex < keyInfo.count) {
+                    shouldShowAccidental = false;
+                }
+            } else if (accidental === 'b' && keyInfo.type === 'flat') {
+                // Check if this note letter is already flatted in the key signature
+                const noteIndex = flatOrder.indexOf(noteWithoutAccidental.toLowerCase());
+                if (noteIndex !== -1 && noteIndex < keyInfo.count) {
+                    shouldShowAccidental = false;
+                }
+            }
+            
+            if (shouldShowAccidental) {
+                vfNote.addModifier(new Accidental(accidentalSymbol), 0);
+            }
         }
 
         if (i < correctCount) {
