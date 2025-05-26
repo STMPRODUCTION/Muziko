@@ -35,11 +35,17 @@
           sendMIDINoteOff(midi);
           key.classList.remove('pressed');
         });
-
         if (isWhite) {
-          piano.appendChild(key);
-          whiteKeyCount++;
-        } else {
+            if (midi === 60) {
+                const label = document.createElement('span');
+                label.textContent = 'C4';
+                label.classList.add('note-label');
+                key.appendChild(label);
+            }
+            piano.appendChild(key);
+            whiteKeyCount++;
+            }
+        else {
           key.classList.add('black');
           // Position black keys between white keys
           const blackKeyOffset = getBlackKeyOffset(noteName, whiteKeyCount);

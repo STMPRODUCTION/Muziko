@@ -58,11 +58,10 @@ function handleNoteOn(note, velocity) {
       setTimeout(() => drawNotes(currentExercise), 600);
     }
   } else {
+    // Wrong note: play buzz sound and update accuracy, but don't reset exercise
     buzzSound.play();
-    drawNotes(currentExercise, currentIndex, currentIndex);
-    currentIndex = 0;
-    stopTimer();
-    updateStats(0);
+    updateStats(); // Update accuracy to reflect the wrong attempt
+    // Note: currentIndex stays the same, exercise continues
   }
 }
 
@@ -86,7 +85,7 @@ function generateRandomExercise() {
   startTimer();
   currentClef = Math.random() < 0.5 ? "treble" : "bass";
 
-  const range = currentClef === "treble" ? [60, 72] : [36, 48];
+  const range = currentClef === "treble" ? [57, 84] : [36, 64];
   const notes = new Set();
 
   while (notes.size < 8) {
@@ -221,19 +220,55 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Arrays to track exercise data
-const accuracyHistory = [];
-const timeHistory = [];
+let accuracyHistory = [];
+let timeHistory = [];
+
+// Load saved data from localStorage
+function loadSavedData() {
+  try {
+    const savedAccuracy = localStorage.getItem('midi-exercise-accuracy');
+    const savedTime = localStorage.getItem('midi-exercise-time');
+    
+    if (savedAccuracy) {
+      accuracyHistory = JSON.parse(savedAccuracy);
+    }
+    if (savedTime) {
+      timeHistory = JSON.parse(savedTime);
+    }
+    
+    console.log(`Loaded ${accuracyHistory.length} previous exercise records`);
+  } catch (error) {
+    console.error('Error loading saved data:', error);
+    accuracyHistory = [];
+    timeHistory = [];
+  }
+}
+
+// Save data to localStorage
+function saveData() {
+  try {
+    localStorage.setItem('midi-exercise-accuracy', JSON.stringify(accuracyHistory));
+    localStorage.setItem('midi-exercise-time', JSON.stringify(timeHistory));
+  } catch (error) {
+    console.error('Error saving data:', error);
+  }
+}
 
 // Get canvas contexts after DOM is ready
 let accuracyCtx, timeCtx;
 
 window.onload = () => {
+  // Load saved data first
+  loadSavedData();
+  
   const accuracyCanvas = document.getElementById('accuracyChart');
   const timeCanvas = document.getElementById('timeChart');
   accuracyCtx = accuracyCanvas.getContext('2d');
   timeCtx = timeCanvas.getContext('2d');
-  drawLineGraph(accuracyCtx, [], 'Accuracy (%) Over Exercises', 'Accuracy %', 100);
-  drawLineGraph(timeCtx, [], 'Time (seconds) Per Exercise', 'Seconds');
+  
+  // Draw charts with loaded data
+  drawLineGraph(accuracyCtx, accuracyHistory, 'Accuracy (%) Over Exercises', 'Accuracy %', 100);
+  drawLineGraph(timeCtx, timeHistory, 'Time (seconds) Per Exercise', 'Seconds');
 };
 
 // Function to draw a simple line graph
@@ -263,18 +298,17 @@ function drawLineGraph(ctx, data, label, yLabel, maxY) {
   ctx.restore();
 
   if (data.length === 0) {
-    ctx.fillText('No data yet', width / 2 - 40, height / 2);
+    ctx.fillText('No data yet - complete an exercise to see your progress!', width / 2 - 120, height / 2);
     return;
   }
 
-  // Draw points and lines
+  // Draw line
   const maxData = maxY || Math.max(...data) * 1.1;
   const paddingLeft = 40;
   const paddingBottom = 30;
   const graphWidth = width - paddingLeft - 10;
   const graphHeight = height - 40;
 
-  // Scale data points
   const stepX = data.length > 1 ? graphWidth / (data.length - 1) : graphWidth;
 
   ctx.strokeStyle = '#00CC58';
@@ -291,32 +325,36 @@ function drawLineGraph(ctx, data, label, yLabel, maxY) {
   });
   ctx.stroke();
 
-  // Draw data points
-  data.forEach((val, i) => {
-    const x = paddingLeft + i * stepX;
-    const y = height - paddingBottom - (val / maxData) * graphHeight;
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, 2 * Math.PI);
-    ctx.fillStyle = '#00CC58';
-    ctx.fill();
-  });
+  // Commented out: draw data points
+  // data.forEach((val, i) => {
+  //   const x = paddingLeft + i * stepX;
+  //   const y = height - paddingBottom - (val / maxData) * graphHeight;
+  //   ctx.beginPath();
+  //   ctx.arc(x, y, 4, 0, 2 * Math.PI);
+  //   ctx.fillStyle = '#00CC58';
+  //   ctx.fill();
+  // });
 
-  // Draw X-axis labels: exercise numbers
-  ctx.fillStyle = '#00CC58';
-  ctx.font = '12px monospace';
-  data.forEach((_, i) => {
-    const x = paddingLeft + i * stepX;
-    ctx.fillText(i + 1, x - 6, height - 10);
-  });
+  // Commented out: draw X-axis labels (exercise numbers)
+  // ctx.fillStyle = '#00CC58';
+  // ctx.font = '12px monospace';
+  // data.forEach((_, i) => {
+  //   const x = paddingLeft + i * stepX;
+  //   ctx.fillText(i + 1, x - 6, height - 10);
+  // });
 
   // Draw Y-axis max label
   ctx.fillText(maxY ? maxY : maxData.toFixed(0), 5, 20);
 }
 
+
 // Update charts with new data
 function updateCharts(accuracy, timeSec) {
   accuracyHistory.push(accuracy);
   timeHistory.push(timeSec);
+
+  // Save data after each completed exercise
+  saveData();
 
   drawLineGraph(accuracyCtx, accuracyHistory, 'Accuracy (%) Over Exercises', 'Accuracy %', 100);
   drawLineGraph(timeCtx, timeHistory, 'Time (seconds) Per Exercise', 'Seconds');
