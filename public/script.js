@@ -30,6 +30,58 @@ function getVexflowKey(noteNumber) {
   return `${noteMap[noteIndex]}/${octave}`;
 }
 
+// Handle note on events (from both real MIDI and virtual piano)
+function handleNoteOn(note, velocity) {
+  attemptedNotesCount++;
+
+  if (note === currentExercise[currentIndex]) {
+    correctNotesCount++;
+    currentIndex++;
+    drawNotes(currentExercise, currentIndex);
+
+    updateStats();  // live accuracy update, time by timer
+
+    if (currentIndex === currentExercise.length) {
+      dingSound.play();
+      stopTimer();
+
+      const timeElapsed = performance.now() - exerciseStartTime;
+      updateStats(timeElapsed);
+
+      updateCharts(
+        (correctNotesCount / attemptedNotesCount) * 100,
+        timeElapsed / 1000
+      );
+
+      currentExercise = generateRandomExercise();
+      currentIndex = 0;
+      setTimeout(() => drawNotes(currentExercise), 600);
+    }
+  } else {
+    buzzSound.play();
+    drawNotes(currentExercise, currentIndex, currentIndex);
+    currentIndex = 0;
+    stopTimer();
+    updateStats(0);
+  }
+}
+
+// Handle note off events (if needed for future features)
+function handleNoteOff(note) {
+  // Currently not used, but available for future features
+}
+
+// Listen for virtual MIDI events from the virtual piano
+window.addEventListener('virtualMIDI', (event) => {
+  const { type, note, velocity, timestamp } = event.detail;
+  
+  if (type === 'noteon') {
+    handleNoteOn(note, velocity);
+  } else if (type === 'noteoff') {
+    handleNoteOff(note);
+  }
+});
+
 function generateRandomExercise() {
   startTimer();
   currentClef = Math.random() < 0.5 ? "treble" : "bass";
@@ -126,10 +178,7 @@ document.getElementById("start").onclick = async () => {
       statusDiv.textContent = "MIDI device connected!";
       statusDiv.className = "connected";
 
-      currentExercise = generateRandomExercise();
-      currentIndex = 0;
-      drawNotes(currentExercise);
-
+      // Set up real MIDI input handlers
       for (const input of midiAccess.inputs.values()) {
         document.getElementById("device-name").textContent = input.name;
 
@@ -138,51 +187,32 @@ document.getElementById("start").onclick = async () => {
           const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
 
           if (isNoteOn) {
-            attemptedNotesCount++;
-
-            if (note === currentExercise[currentIndex]) {
-              correctNotesCount++;
-              currentIndex++;
-              drawNotes(currentExercise, currentIndex);
-
-              updateStats();  // live accuracy update, time by timer
-
-              if (currentIndex === currentExercise.length) {
-                dingSound.play();
-                stopTimer();
-
-                const timeElapsed = performance.now() - exerciseStartTime;
-                updateStats(timeElapsed);
-
-                updateCharts(
-                  (correctNotesCount / attemptedNotesCount) * 100,
-                  timeElapsed / 1000
-                );
-
-                currentExercise = generateRandomExercise();
-                currentIndex = 0;
-                setTimeout(() => drawNotes(currentExercise), 600);
-              }
-            } else {
-              buzzSound.play();
-              drawNotes(currentExercise, currentIndex, currentIndex);
-              currentIndex = 0;
-              stopTimer();
-              updateStats(0);
-            }
+            handleNoteOn(note, velocity);
           }
         };
       }
     } else {
-      statusDiv.textContent = "No MIDI inputs found. Please connect a MIDI device.";
-      statusDiv.className = "disconnected";
+      statusDiv.textContent = "No MIDI device found. Using virtual piano.";
+      statusDiv.className = "virtual";
+      document.getElementById("device-name").textContent = "Virtual Piano";
     }
+
+    // Start exercise regardless of MIDI device availability
+    currentExercise = generateRandomExercise();
+    currentIndex = 0;
+    drawNotes(currentExercise);
+
   } catch (err) {
     console.error("MIDI access failed:", err);
     const statusDiv = document.getElementById("status");
-    statusDiv.textContent =
-      "Failed to access MIDI devices. Make sure your browser supports Web MIDI API.";
-    statusDiv.className = "disconnected";
+    statusDiv.textContent = "MIDI access failed. Using virtual piano.";
+    statusDiv.className = "virtual";
+    document.getElementById("device-name").textContent = "Virtual Piano";
+    
+    // Start exercise with virtual piano only
+    currentExercise = generateRandomExercise();
+    currentIndex = 0;
+    drawNotes(currentExercise);
   }
 };
 
