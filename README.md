@@ -1,4 +1,4 @@
-# 🎵 Muziko - MIDI Sight-Reading Trainer
+# 🎵 [Muziko](https://stmproduction.github.io/Muziko/) - MIDI Sight-Reading Trainer
 
 ## 📖 General Description
 
@@ -38,7 +38,7 @@ The application is organized into independent modules to ensure portability and 
    → Score appears; user plays it in real-time
 
 5. **Instant Feedback**  
-   → Displays accuracy, tempo, latency, and overall score
+   → Displays accuracy, time, and overall score
 
 6. **History & Progress**  
    → Saves stats and allows review of past exercises
@@ -47,16 +47,15 @@ The application is organized into independent modules to ensure portability and 
 
 ## ⚙️ Technologies Used & Motivation
 
-| Component         | Technology              | Motivation                                                   |
+| Component         | Technology               | Motivation                                                   |
 |-------------------|--------------------------|--------------------------------------------------------------|
 | Interface         | React + Tailwind         | Fast development, modern look, responsive design             |
 | Desktop App       | Electron.js              | Cross-platform support (Windows/macOS/Linux)                 |
 | MIDI Processing   | Web MIDI API / `midi`    | Direct MIDI input access, well-supported in Electron         |
-| Sound Engine      | Tone.js / FluidSynth     | Realistic playback, precise sound control                    |
-| Persistence       | File System / SQLite     | Simple and reliable local data storage                       |
+| Persistence       | File System              | Simple and reliable local data storage                       |
 | Code Management   | Git (GitHub)             | Collaboration, versioning, open contribution                 |
 | Testing           | Unit tests + manual QA   | Ensures stability and reliability                            |
-| Licensing         | MIT / GPL v3             | Encourages community contribution and flexibility            |
+| Licensing         | Apache 2.0               | Encourages community contribution and flexibility            |
 
 ---
 
@@ -75,9 +74,5 @@ Muziko will include a **Free and Open Source (FOSS)** version available on GitHu
 - Adaptive difficulty exercises  
 - Advanced statistics  
 - Cloud integration / PDF export  
-
-Contribution and installation guides will be provided in the full `README.md`.
-
----
 
 Made with ❤️ for the music education community.
