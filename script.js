@@ -33,7 +33,7 @@ function getVexflowKey(noteNumber) {
 // Handle note on events (from both real MIDI and virtual piano)
 function handleNoteOn(note, velocity) {
   attemptedNotesCount++;
-
+  highlightVirtualKey(note, true);
   if (note === currentExercise[currentIndex]) {
     correctNotesCount++;
     currentIndex++;
@@ -60,6 +60,7 @@ function handleNoteOn(note, velocity) {
   } else {
     // Wrong note: play buzz sound and update accuracy, but don't reset exercise
     buzzSound.play();
+    drawNotes(currentExercise, currentIndex, currentIndex);
     updateStats(); // Update accuracy to reflect the wrong attempt
     // Note: currentIndex stays the same, exercise continues
   }
@@ -67,6 +68,7 @@ function handleNoteOn(note, velocity) {
 
 // Handle note off events (if needed for future features)
 function handleNoteOff(note) {
+  highlightVirtualKey(note, false); // ← ADD THIS
   // Currently not used, but available for future features
 }
 
@@ -172,49 +174,61 @@ document.getElementById("start").onclick = async () => {
   try {
     const midiAccess = await navigator.requestMIDIAccess();
     const statusDiv = document.getElementById("status");
+    const deviceNameEl = document.getElementById("device-name");
 
     if (midiAccess.inputs.size > 0) {
-      statusDiv.textContent = "MIDI device connected!";
+      statusDiv.dataset.translate = "midi_connected";
+      statusDiv.textContent = translations[currentLanguage].midi_connected;
       statusDiv.className = "connected";
 
-      // Set up real MIDI input handlers
-      for (const input of midiAccess.inputs.values()) {
-        document.getElementById("device-name").textContent = input.name;
+      // Don’t show the actual device name, just show a translated label
+      deviceNameEl.dataset.translate = "device_midi";
+      deviceNameEl.textContent = translations[currentLanguage].device_midi;
 
+      for (const input of midiAccess.inputs.values()) {
         input.onmidimessage = (event) => {
           const [status, note, velocity] = event.data;
           const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
 
           if (isNoteOn) {
             handleNoteOn(note, velocity);
+          } else {
+            handleNoteOff(note);
           }
         };
       }
     } else {
-      statusDiv.textContent = "No MIDI device found. Using virtual piano.";
+      statusDiv.dataset.translate = "no_midi_found";
+      statusDiv.textContent = translations[currentLanguage].no_midi_found;
       statusDiv.className = "virtual";
-      document.getElementById("device-name").textContent = "Virtual Piano";
+
+      deviceNameEl.dataset.translate = "device_virtual";
+      deviceNameEl.textContent = translations[currentLanguage].device_virtual;
     }
 
-    // Start exercise regardless of MIDI device availability
+    // Start exercise
     currentExercise = generateRandomExercise();
     currentIndex = 0;
     drawNotes(currentExercise);
 
   } catch (err) {
     console.error("MIDI access failed:", err);
+
     const statusDiv = document.getElementById("status");
-    statusDiv.textContent = "MIDI access failed. Using virtual piano.";
+    const deviceNameEl = document.getElementById("device-name");
+
+    statusDiv.dataset.translate = "midi_failed";
+    statusDiv.textContent = translations[currentLanguage].midi_failed;
     statusDiv.className = "virtual";
-    document.getElementById("device-name").textContent = "Virtual Piano";
-    
-    // Start exercise with virtual piano only
+
+    deviceNameEl.dataset.translate = "device_virtual";
+    deviceNameEl.textContent = translations[currentLanguage].device_virtual;
+
     currentExercise = generateRandomExercise();
     currentIndex = 0;
     drawNotes(currentExercise);
   }
 };
-
 document.addEventListener("DOMContentLoaded", () => {
   drawNotes([]);
 });
@@ -260,17 +274,22 @@ let accuracyCtx, timeCtx;
 window.onload = () => {
   // Load saved data first
   loadSavedData();
-  
+  drawCharts();
+};
+window.drawCharts = function() {
   const accuracyCanvas = document.getElementById('accuracyChart');
   const timeCanvas = document.getElementById('timeChart');
   accuracyCtx = accuracyCanvas.getContext('2d');
   timeCtx = timeCanvas.getContext('2d');
-  
-  // Draw charts with loaded data
-  drawLineGraph(accuracyCtx, accuracyHistory, 'Accuracy (%) Over Exercises', 'Accuracy %', 100);
-  drawLineGraph(timeCtx, timeHistory, 'Time (seconds) Per Exercise', 'Seconds');
-};
 
+  const accuracyTitle = translations[currentLanguage]['accuracy_chart_title'] || 'Accuracy (%) Over Exercises';
+  const timeTitle = translations[currentLanguage]['time_chart_title'] || 'Time (seconds) Per Exercise';
+  const accuracyLabel = translations[currentLanguage]['accuracy_y_label'] || 'Accuracy %';
+  const timeLabel = translations[currentLanguage]['time_y_label'] || 'Seconds';
+
+  drawLineGraph(accuracyCtx, accuracyHistory, accuracyTitle, accuracyLabel, 100);
+  drawLineGraph(timeCtx, timeHistory, timeTitle, timeLabel);
+};
 // Function to draw a simple line graph
 function drawLineGraph(ctx, data, label, yLabel, maxY) {
   const width = ctx.canvas.width;
@@ -298,7 +317,7 @@ function drawLineGraph(ctx, data, label, yLabel, maxY) {
   ctx.restore();
 
   if (data.length === 0) {
-    ctx.fillText('No data yet - complete an exercise to see your progress!', width / 2 - 120, height / 2);
+    //ctx.fillText('No data yet - complete an exercise to see your progress!', width / 2 - 120, height / 2);
     return;
   }
 
