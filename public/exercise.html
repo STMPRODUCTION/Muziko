@@ -5,177 +5,58 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Muziko</title>
-  <style>
-    body {
-      background-color: #414231;
-      color: #00CC58;
-      font-family: 'Courier New', Courier, monospace;
-      margin: 0;
-      padding: 0;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    #charts-container {
-      position: fixed;
-      left: 20px;
-      top: 80px;
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-      width: 250px;
-    }
-
-    .main-content {
-      position: absolute;
-      top: 10px;
-      left: 550px;
-      width: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-bottom: 200px;
-    }
-
-    h1 {
-      color: #00CC58;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 24px;
-      user-select: none;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    button {
-      background-color: #00CC58;
-      border: none;
-      border-radius: 8px;
-      color: #414231;
-      font-weight: bold;
-      padding: 14px 28px;
-      cursor: pointer;
-      font-size: 1rem;
-      user-select: none;
-      transition: background-color 0.25s ease;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: #00b84e;
-    }
-
-    button:disabled {
-      background-color: #555842;
-      cursor: not-allowed;
-    }
-
-    #status,
-    #device-name,
-    #exercise-info,
-    #stats {
-      text-align: center;
-      margin-bottom: 15px;
-      user-select: none;
-    }
-
-    #device-name {
-      font-style: italic;
-      color: #a0dca3;
-    }
-
-    #exercise-info {
-      background-color: #3c3c33;
-      padding: 10px;
-      border-radius: 8px;
-      font-weight: 500;
-    }
-
-    #stats {
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-
-    #staff {
-      background-color: #D9D9D9;
-      border-radius: 8px;
-      padding: 24px 28px;
-      min-height: 180px;
-      width: 720px;
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
-      margin: 2px 0;
-    }
-
-    #layout {
-      display: flex;
-      align-items: flex-start;
-      gap: 60px;
-    }
-
-    #virtual-piano-wrapper {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      overflow-x: auto;
-      padding: 10px;
-      background-color: #2e2f25;
-      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
-      z-index: 1000;
-    }
-
-    #virtual-piano {
-      display: flex;
-      position: relative;
-      height: 140px;
-      user-select: none;
-      margin: 0 auto;
-      width: fit-content;
-    }
-
-    .piano-key {
-      width: 40px;
-      height: 140px;
-      border: 1px solid #000;
-      box-sizing: border-box;
-      background: #fafafa;
-      position: relative;
-      z-index: 1;
-      cursor: pointer;
-    }
-
-    .piano-key.black {
-      width: 28px;
-      height: 90px;
-      background: #333;
-      position: absolute;
-      z-index: 2;
-      top: 0;
-    }
-
-    .piano-key:active,
-    .piano-key.pressed {
-      background: #ccc;
-    }
-
-    .piano-key.black:active,
-    .piano-key.black.pressed {
-      background: #555;
-    }
-
-    canvas {
-      background: #414231;
-      border-radius: 8px;
-      display: block;
-      box-sizing: border-box;
-    }
-  </style>
+  <link rel="stylesheet" href="SecondStyle.css">
 </head>
 <body>
+
+   <div class="language-selector">
+    <div class="language-dropdown" id="languageDropdown">
+      <button class="language-btn" id="languageBtn">
+        <span class="language-text">EN</span>
+        <svg class="language-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+      </button>
+      <div class="language-options" id="languageOptions">
+        <button class="language-option selected" data-lang="en" data-code="EN">
+          <span>EN</span>
+        </button>
+        <button class="language-option" data-lang="es" data-code="ES">
+          <span>ES</span>
+        </button>
+        <button class="language-option" data-lang="fr" data-code="FR">
+          <span>FR</span>
+        </button>
+        <button class="language-option" data-lang="de" data-code="DE">
+          <span>DE</span>
+        </button>
+        <button class="language-option" data-lang="it" data-code="IT">
+          <span>IT</span>
+        </button>
+        <button class="language-option" data-lang="ro" data-code="RO">
+          <span>RO</span>
+        </button>
+        <button class="language-option" data-lang="pt" data-code="PT">
+          <span>PT</span>
+        </button>
+        <button class="language-option" data-lang="pl" data-code="PL">
+          <span>PL</span>
+        </button>
+        <button class="language-option" data-lang="hu" data-code="HU">
+          <span>HU</span>
+        </button>
+        <button class="language-option" data-lang="ru" data-code="RU">
+          <span>RU</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div class="translate-loading" id="translateLoading">
+    <div class="spinner"></div>
+    Translating...
+  </div>
   <div id="charts-wrapper">
     <div id="charts-container">
       <canvas id="accuracyChart" width="250" height="150"></canvas>
@@ -184,16 +65,17 @@
   </div>
 
   <div class="main-content">
-    <h1>Muziko</h1>
-    <div class="controls">
-      <button id="start">Start Exercise</button>
-    </div>
-    <div id="status">Click "Start Exercise" to begin</div>
-    <div id="device-name"></div>
-    <div id="exercise-info"></div>
+    <h1 data-translate="title">Muziko</h1>
+    <button id="start" data-translate="start_button">Start Exercise</button>
+    <div id="status" data-translate="status_message">Click "Start Exercise" to begin</div>
+    <div id="device-name" data-translate="device_connected"></div>
+    <!-- <div id="exercise-info"></div>-->
     <div id="staff"></div>
-    <div id="stats">
-      Accuracy: <span id="accuracy">0%</span> | Time: <span id="time">0.0s</span>
+     <div>
+      <span data-translate="accuracy_label">Accuracy:</span> 
+      <span id="accuracy">0%</span> |  
+      <span data-translate="time_label">Time:</span> 
+      <span id="time">0.0s</span>
     </div>
   </div>
 
@@ -203,5 +85,6 @@
     <div id="virtual-piano"></div>
   </div>
   <script src="piano.js"></script>
+  <script src="lang.js"></script>
 </body>
 </html>
