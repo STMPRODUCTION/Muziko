@@ -5,155 +5,75 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Welcome to Muziko</title>
-  <style>
-    body {
-      background-color: #414231;
-      color: #00CC58;
-      font-family: 'Courier New', Courier, monospace;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      justify-content: center;
-      flex: 1;
-      padding: 40px 20px;
-      animation: fadeIn 1s ease-in;
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      animation: slideDown 1s ease-out;
-    }
-
-    .tagline {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #a0dca3;
-      margin-bottom: 30px;
-      animation: pulse 2.5s infinite ease-in-out;
-    }
-
-    .description {
-      max-width: 700px;
-      font-size: 1.1rem;
-      line-height: 1.7;
-      margin-bottom: 40px;
-      animation: fadeInUp 1.5s ease-in;
-    }
-
-    .start-btn {
-      background-color: transparent;
-      color: #00CC58;
-      border: 2px solid #00CC58;
-      padding: 12px 30px;
-      border-radius: 30px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      animation: fadeInUp 2s ease-in;
-    }
-
-    .start-btn:hover {
-      background-color: #00CC58;
-      color: #414231;
-      transform: scale(1.05);
-    }
-
-    .footer {
-      background-color: #00CC58;
-      color: #414231;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1rem;
-      font-weight: bold
-    }
-
-    .footer-left {
-      display: flex;
-      gap: 12px;
-    }
-
-    .footer-left span::after {
-      content: "•";
-      margin: 0 8px;
-    }
-
-    .footer-left span:last-child::after {
-      content: "";
-      margin: 0;
-    }
-
-    .footer a {
-      color: #414231;
-      text-decoration: none;
-    }
-
-    .footer a:hover {
-      text-decoration: underline;
-    }
-
-    .footer img {
-      height: 50px;
-      width: 50px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .footer img:hover {
-      transform: scale(1.1);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-
-    @keyframes slideDown {
-      from { transform: translateY(-30px); opacity: 0; }
-      to   { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to   { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); }
-    }
-  </style>
+   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to Muziko</h1>
-    <div class="tagline">Practice. Play. Progress.</div>
-    <div class="description">
-      <p><strong>Muziko is one of the best ways to sharpen your sight-reading skills and grow as a musician.</strong></p>
-      <p>It connects seamlessly to any MIDI-enabled digital instrument—like a piano or MIDI guitar—and generates real musical scores in real time.</p>
-      <p>Simply play the notes you see, and Muziko will provide instant feedback on your accuracy, helping you improve note by note.</p>
+  <!-- Custom Language Selector -->
+  <div class="language-selector">
+    <div class="language-dropdown" id="languageDropdown">
+      <button class="language-btn" id="languageBtn">
+        <span class="language-text">EN</span>
+        <svg class="language-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+      </button>
+      <div class="language-options" id="languageOptions">
+        <button class="language-option selected" data-lang="en" data-code="EN">
+          <span>EN</span>
+        </button>
+        <button class="language-option" data-lang="es" data-code="ES">
+          <span>ES</span>
+        </button>
+        <button class="language-option" data-lang="fr" data-code="FR">
+          <span>FR</span>
+        </button>
+        <button class="language-option" data-lang="de" data-code="DE">
+          <span>DE</span>
+        </button>
+        <button class="language-option" data-lang="it" data-code="IT">
+          <span>IT</span>
+        </button>
+        <button class="language-option" data-lang="ro" data-code="RO">
+          <span>RO</span>
+        </button>
+        <button class="language-option" data-lang="pt" data-code="PT">
+          <span>PT</span>
+        </button>
+        <button class="language-option" data-lang="pl" data-code="PL">
+          <span>PL</span>
+        </button>
+        <button class="language-option" data-lang="hu" data-code="HU">
+          <span>HU</span>
+        </button>
+        <button class="language-option" data-lang="ru" data-code="RU">
+          <span>RU</span>
+        </button>
+      </div>
     </div>
-    <a class="start-btn" href="exercise.html">Start Training</a>
+  </div>
+
+  <!-- Loading indicator -->
+  <div class="translate-loading" id="translateLoading">
+    <div class="spinner"></div>
+    Translating...
+  </div>
+  
+  <div class="container">
+    <h1 data-translate="welcome-title">Welcome to Muziko</h1>
+    <div class="tagline" data-translate="tagline">Practice. Play. Progress.</div>
+    <div class="description">
+      <p data-translate="description-1"><strong>Muziko is one of the best ways to sharpen your sight-reading skills and grow as a musician.</strong></p>
+      <p data-translate="description-2">It connects seamlessly to any MIDI-enabled digital instrument—like a piano or MIDI guitar—and generates real musical scores in real time.</p>
+      <p data-translate="description-3">Simply play the notes you see, and Muziko will provide instant feedback on your accuracy, helping you improve note by note.</p>
+    </div>
+    <a class="start-btn" href="exercise.html" data-translate="start-btn">Start Training</a>
   </div>
 
   <div class="footer">
     <div class="footer-left">
-      <span><a href="#">Terms of Service</a></span>
-      <span><a href="#">Privacy Policy</a></span>
-      <span><a href="#">Legal</a></span>
+      <span><a href="#" data-translate="terms">Terms of Service</a></span>
+      <span><a href="#" data-translate="privacy">Privacy Policy</a></span>
+      <span><a href="#" data-translate="legal">Legal</a></span>
     </div>
     <div class="footer-right">
       <a href="https://github.com/STMPRODUCTION/Muziko" target="_blank">
@@ -161,5 +81,7 @@
       </a>
     </div>
   </div>
+
+  <script src=lang.js ></script>
 </body>
 </html>
