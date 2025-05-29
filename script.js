@@ -134,14 +134,39 @@ function startTimer() {
   }, 100);
 }
 
+let currentNotes = [];
+let currentCorrectCount = 0;
+let currentWrongIndex = -1;
+let resizeTimeout;
+
 function drawNotes(notes, correctCount = 0, wrongIndex = -1) {
+  // Store current state
+  currentNotes = notes;
+  currentCorrectCount = correctCount;
+  currentWrongIndex = wrongIndex;
+
   const container = document.getElementById("staff");
-  container.innerHTML = "";
+  clearContainer(container);
+  // Get container dimensions
+  const containerRect = container.getBoundingClientRect();
+  const containerWidth = containerRect.width || container.clientWidth || 750; // fallback to 750
+  const containerHeight = containerRect.height || container.clientHeight || 200; // fallback to 200
+  
+  // Calculate responsive dimensions
+  const padding = 50; // padding on sides
+  const staveWidth = Math.max(300, containerWidth - padding * 2); // minimum 300px width
+  const rendererWidth = containerWidth-50;
+  const rendererHeight = Math.max(150, containerHeight); // minimum 150px height
+  
+  // Calculate stave positioning to center it
+  const staveX = (rendererWidth - staveWidth) / 2;
+  const staveY = Math.max(40, (rendererHeight - 120) / 2); // center vertically with minimum top margin
 
   const renderer = new Renderer(container, Renderer.Backends.SVG);
-  renderer.resize(750, 200);
+  renderer.resize(rendererWidth, rendererHeight);
   const context = renderer.getContext();
-  const stave = new Stave(10, 40, 700);
+  
+  const stave = new Stave(staveX, staveY, staveWidth);
   stave.addClef(currentClef).setContext(context).draw();
 
   if (!notes.length) return;
@@ -166,8 +191,31 @@ function drawNotes(notes, correctCount = 0, wrongIndex = -1) {
   const voice = new Voice({ num_beats: notes.length, beat_value: 4 });
   voice.setStrict(false);
   voice.addTickables(staveNotes);
-  new Formatter().joinVoices([voice]).format([voice], 700);
+  
+  // Use the calculated stave width for formatting
+  new Formatter().joinVoices([voice]).format([voice], staveWidth - 100); // subtract space for clef
   voice.draw(context, stave);
+}
+
+// Handle window resize with debouncing for better performance
+function handleResize() {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (currentNotes.length > 0) {
+      drawNotes(currentNotes, currentCorrectCount, currentWrongIndex);
+    }
+  }, 150); // 150ms debounce delay
+}
+// Add resize event listener (only add once)
+if (!window.staffResizeListenerAdded) {
+  window.addEventListener('resize', handleResize);
+  window.staffResizeListenerAdded = true;
+}
+
+function clearContainer(container) {
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
 }
 
 document.getElementById("start").onclick = async () => {
@@ -276,6 +324,21 @@ window.onload = () => {
   loadSavedData();
   drawCharts();
 };
+
+function drawCharts() {
+  const accuracyCanvas = document.getElementById('accuracyChart');
+  const timeCanvas = document.getElementById('timeChart');
+  accuracyCtx = accuracyCanvas.getContext('2d');
+  timeCtx = timeCanvas.getContext('2d');
+
+  const accuracyTitle = translations[currentLanguage]['accuracy_chart_title'] || 'Accuracy (%) Over Exercises';
+  const timeTitle = translations[currentLanguage]['time_chart_title'] || 'Time (seconds) Per Exercise';
+  const accuracyLabel = translations[currentLanguage]['accuracy_y_label'] || 'Accuracy %';
+  const timeLabel = translations[currentLanguage]['time_y_label'] || 'Seconds';
+
+  drawLineGraph(accuracyCtx, accuracyHistory, accuracyTitle, accuracyLabel, 100);
+  drawLineGraph(timeCtx, timeHistory, timeTitle, timeLabel);
+}
 window.drawCharts = function() {
   const accuracyCanvas = document.getElementById('accuracyChart');
   const timeCanvas = document.getElementById('timeChart');

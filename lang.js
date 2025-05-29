@@ -256,57 +256,70 @@
         }
     };
 
-    // Language selector functionality
-    const languageDropdown = document.getElementById('languageDropdown');
-    const languageBtn = document.getElementById('languageBtn');
-    const languageOptions = document.getElementById('languageOptions');
-    const translateLoading = document.getElementById('translateLoading');
+// Language selector functionality
+const languageDropdown = document.getElementById('languageDropdown');
+const languageBtn = document.getElementById('languageBtn');
+const languageOptions = document.getElementById('languageOptions');
+const translateLoading = document.getElementById('translateLoading');
 
-    let currentLanguage = 'en';
+let currentLanguage = localStorage.getItem('selectedLanguage') || 'en'; // Get saved language or default to 'en'
 
-    // Toggle dropdown
-    languageBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      languageDropdown.classList.toggle('open');
-    });
+// Apply saved language on load
+document.addEventListener('DOMContentLoaded', () => {
+  const selectedOption = languageOptions.querySelector(`[data-lang="${currentLanguage}"]`);
+  if (selectedOption) {
+    selectedOption.classList.add('selected');
+    languageBtn.querySelector('.language-text').textContent = selectedOption.dataset.code;
+  }
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!languageDropdown.contains(e.target)) {
-        languageDropdown.classList.remove('open');
-      }
-    });
+  translatePage(currentLanguage);
+});
 
-      // Handle language selection
-  languageOptions.addEventListener('click', (e) => {
-    const option = e.target.closest('.language-option');
-    if (!option) return;
+// Toggle dropdown
+languageBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  languageDropdown.classList.toggle('open');
+});
 
-    const lang = option.dataset.lang;
-    const langCode = option.dataset.code;
-
-    if (lang === currentLanguage) {
-      languageDropdown.classList.remove('open');
-      return;
-    }
-
-    // Update current selection
-    const previous = languageOptions.querySelector('.language-option.selected');
-    if (previous) previous.classList.remove('selected');
-    option.classList.add('selected');
-
-    // Update button display
-    languageBtn.querySelector('.language-text').textContent = langCode;
-
-    // Close dropdown
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!languageDropdown.contains(e.target)) {
     languageDropdown.classList.remove('open');
+  }
+});
 
-    // Translate page
-    translatePage(lang);
-  });
+// Handle language selection
+languageOptions.addEventListener('click', (e) => {
+  const option = e.target.closest('.language-option');
+  if (!option) return;
 
+  const lang = option.dataset.lang;
+  const langCode = option.dataset.code;
 
-    // Translation function
+  if (lang === currentLanguage) {
+    languageDropdown.classList.remove('open');
+    return;
+  }
+
+  // Update selected language
+  const previous = languageOptions.querySelector('.language-option.selected');
+  if (previous) previous.classList.remove('selected');
+  option.classList.add('selected');
+
+  // Update button display
+  languageBtn.querySelector('.language-text').textContent = langCode;
+
+  // Save language to localStorage
+  localStorage.setItem('selectedLanguage', lang);
+
+  // Close dropdown
+  languageDropdown.classList.remove('open');
+
+  // Translate page
+  translatePage(lang);
+});
+
+// Translation function
 function translatePage(targetLang) {
   if (!translations[targetLang]) {
     console.warn(`Translation for ${targetLang} not available`);
@@ -342,31 +355,30 @@ function translatePage(targetLang) {
   }, 500);
 }
 
+// Keyboard navigation
+languageOptions.addEventListener('keydown', (e) => {
+  const options = Array.from(languageOptions.querySelectorAll('.language-option'));
+  const currentIndex = options.findIndex(opt => opt === document.activeElement);
 
-    // Keyboard navigation
-    languageOptions.addEventListener('keydown', (e) => {
-      const options = Array.from(languageOptions.querySelectorAll('.language-option'));
-      const currentIndex = options.findIndex(opt => opt === document.activeElement);
-
-      switch(e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          const nextIndex = (currentIndex + 1) % options.length;
-          options[nextIndex].focus();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          const prevIndex = (currentIndex - 1 + options.length) % options.length;
-          options[prevIndex].focus();
-          break;
-        case 'Enter':
-        case ' ':
-          e.preventDefault();
-          document.activeElement.click();
-          break;
-        case 'Escape':
-          languageDropdown.classList.remove('open');
-          languageBtn.focus();
-          break;
-      }
-    });
+  switch(e.key) {
+    case 'ArrowDown':
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % options.length;
+      options[nextIndex].focus();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + options.length) % options.length;
+      options[prevIndex].focus();
+      break;
+    case 'Enter':
+    case ' ':
+      e.preventDefault();
+      document.activeElement.click();
+      break;
+    case 'Escape':
+      languageDropdown.classList.remove('open');
+      languageBtn.focus();
+      break;
+  }
+});
