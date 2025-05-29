@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="SecondStyle.css">
 </head>
 <body>
-
-   <div class="language-selector">
+  <!-- Language selector (stays fixed) -->
+  <div class="language-selector">
     <div class="language-dropdown" id="languageDropdown">
       <button class="language-btn" id="languageBtn">
         <span class="language-text">EN</span>
@@ -57,34 +57,62 @@
     <div class="spinner"></div>
     Translating...
   </div>
-  <div id="charts-wrapper">
-    <div id="charts-container">
-      <canvas id="accuracyChart" width="250" height="150"></canvas>
-      <canvas id="timeChart" width="250" height="150"></canvas>
-    </div>
-  </div>
 
+  <!-- Main app container - THIS IS THE KEY WRAPPER -->
+  <div class="app-container">
+  <!-- Main content area -->
   <div class="main-content">
     <h1 data-translate="title">Muziko</h1>
-    <button id="start" data-translate="start_button">Start Exercise</button>
+    
+    <div class="controls">
+      <button id="start" data-translate="start_button">Start Exercise</button>
+    </div>
+    
     <div id="status" data-translate="status_message">Click "Start Exercise" to begin</div>
     <div id="device-name" data-translate="device_connected"></div>
-    <!-- <div id="exercise-info"></div>-->
+    
+    <!-- Staff notation area -->
     <div id="staff"></div>
-     <div>
-      <span data-translate="accuracy_label">Accuracy:</span> 
-      <span id="accuracy">0%</span> |  
-      <span data-translate="time_label">Time:</span> 
+    
+    <div id="stats">
+      <span data-translate="accuracy_label">Accuracy:</span>
+      <span id="accuracy">0%</span> |
+      <span data-translate="time_label">Time:</span>
       <span id="time">0.0s</span>
     </div>
+    <!-- Charts container - now below staff -->
+    <div id="charts-container">
+      <canvas id="accuracyChart"></canvas>
+      <canvas id="timeChart"></canvas>
+    </div>
   </div>
+</div>
+
+  <!-- Piano at bottom (fixed position) -->
+<div id="virtual-piano-wrapper">
+  <div class="piano-scroll-container">
+    <div class="piano-spacer-start"></div>
+    <div id="virtual-piano"></div>
+    <div class="piano-spacer-end"></div>
+  </div>
+</div>
 
   <script type="module" src="script.js"></script>
-
-  <div id="virtual-piano-wrapper">
-    <div id="virtual-piano"></div>
-  </div>
   <script src="piano.js"></script>
   <script src="lang.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const wrapper = document.getElementById('virtual-piano-wrapper');
+      const scrollContainer = wrapper.querySelector('.piano-scroll-container');
+      
+      // Calculate center position
+      const totalWidth = scrollContainer.scrollWidth;
+      const viewportWidth = wrapper.clientWidth;
+      const centerPosition = (totalWidth - viewportWidth) / 2;
+      
+      // Set scroll position to center
+      wrapper.scrollLeft = centerPosition;
+    });
+</script>
 </body>
 </html>
