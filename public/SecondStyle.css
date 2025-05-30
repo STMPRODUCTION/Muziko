@@ -35,7 +35,7 @@ body {
   background-color: rgba(255, 255, 255,0)  ;
   border-radius: 10px;
   
-  /* Remove sticky positioning */
+
   position: static;
   height: auto;
   max-height: none;
@@ -44,7 +44,7 @@ body {
 
 #charts-container canvas {
   border-radius: 8px;
-    width: 300px;  /* Increased from 250px */
+    width: 300px; 
     height: 200px
 }
 
@@ -55,7 +55,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0; 
   width: 100%;
   margin: 0 auto;
 }
@@ -185,7 +185,6 @@ button:disabled {
   flex-wrap: nowrap;
   height: 140px;
   user-select: none;
-  /* Remove width: max-content and margin-right */
 }
 .piano-key {
   width: 40px;
@@ -342,7 +341,6 @@ canvas {
   margin-right: 10px;
 }
 
-/* Responsive breakpoints */
 
 /* Large tablets and small desktops */
 @media (max-width: 1200px) {

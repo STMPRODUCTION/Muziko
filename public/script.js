@@ -68,7 +68,7 @@ function handleNoteOn(note, velocity) {
 
 // Handle note off events (if needed for future features)
 function handleNoteOff(note) {
-  highlightVirtualKey(note, false); // ← ADD THIS
+  highlightVirtualKey(note, false);
   // Currently not used, but available for future features
 }
 
@@ -206,7 +206,7 @@ function handleResize() {
     }
   }, 150); // 150ms debounce delay
 }
-// Add resize event listener (only add once)
+
 if (!window.staffResizeListenerAdded) {
   window.addEventListener('resize', handleResize);
   window.staffResizeListenerAdded = true;
@@ -398,7 +398,7 @@ function drawLineGraph(ctx, data, label, yLabel, maxY) {
   ctx.save();
   ctx.translate(15, height / 2);  // More space from edge
   ctx.rotate(-Math.PI / 2);
-  ctx.font = '14px "Courier New", monospace';  // Courier New font
+  ctx.font = '14px "Courier New", monospace';  
   ctx.textAlign = 'center';
   ctx.fillText(yLabel, 0, 0);
   ctx.restore();
