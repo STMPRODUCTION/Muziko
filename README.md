@@ -6,7 +6,7 @@
 
 Muziko is designed for students, conservatory attendees, music teachers, and passionate amateurs. The app will be available in both a full version and a FOSS (Free and Open Source Software) edition for the community.
 
----
+----
 
 ## 🧱 Planned Modular Structure
 
