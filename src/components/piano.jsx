@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/piano.css'; 
+import '@/css/piano.css'; 
 
 const PIANO_NOTE_NAMES = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
 const WHITE_NOTES = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];

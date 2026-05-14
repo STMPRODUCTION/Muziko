@@ -1,6 +1,5 @@
 import React from 'react';
-import '../css/style.css'; // Ensure the path points to your CSS
-
+import '@/css/style.css'; 
 export default function Home({ onStartTraining }) {
   return (
     <div className="home-wrapper">

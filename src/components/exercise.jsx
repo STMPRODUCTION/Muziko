@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Piano from './piano';
 import MusicStaff from './musicStaff';
+import '../css/piano.css'; 
 
 export default function Exercise({ onBack }) {
   const [gameState, setGameState] = useState({
@@ -13,7 +14,8 @@ export default function Exercise({ onBack }) {
   });
   const [pressedKeys, setPressedKeys] = useState(new Set());
 
-  const startExercise = () => {
+  // FIXED: Renamed to match the button's onClick call
+  const startTraining = () => {
     const isTreble = Math.random() < 0.5;
     const range = isTreble ? [57, 84] : [36, 64];
     const notes = Array.from({ length: 8 }, () => 
@@ -30,7 +32,7 @@ export default function Exercise({ onBack }) {
     });
   };
 
-  const handleNoteOn = (midi) => {
+  const handleNoteOn = useCallback((midi) => {
     setPressedKeys(prev => new Set(prev).add(midi));
     if (gameState.exercise.length === 0) return;
 
@@ -46,31 +48,57 @@ export default function Exercise({ onBack }) {
         wrongIndex: isCorrect ? -1 : prev.index
       };
     });
-  };
+  }, [gameState.exercise]);
 
-  const handleNoteOff = (midi) => {
+  const handleNoteOff = useCallback((midi) => {
     setPressedKeys(prev => {
       const next = new Set(prev);
       next.delete(midi);
       return next;
     });
-  };
+  }, []);
 
-  return (
-    <div className="app-container">
-      <h1>Muziko</h1>
-      <div className="controls">
-        <button onClick={onBack}>Back</button>
-        <button onClick={startExercise}>Start Training</button>
-      </div>
+ return (
+    <div className="exercise-layout">
+    {/* Header section centered to match your request */}
+    <div className="exercise-header" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        padding: '20px',
+        width: '100%' 
+    }}>
+        <h1 className="exercise-logo" style={{ 
+        color: '#00CC58', 
+        margin: '0 0 15px 0', 
+        fontSize: '2.5rem',
+        textAlign: 'center' 
+        }}>Muziko</h1>
+        
+        <div className="button-group" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        gap: '10px' 
+        }}>
+        {/* Back button hidden for now */}
+        {false && <button className="nav-btn back-btn" onClick={onBack}>Back</button>}
+        
+        <button className="nav-btn start-btn" onClick={startTraining}>Start Training</button>
+        </div>
+    </div>
       
-      <MusicStaff 
-        exercise={gameState.exercise} 
-        currentIndex={gameState.index} 
-        wrongIndex={gameState.wrongIndex}
-        clef={gameState.clef}
-      />
+      {/* Staff rendering within the light grey box container */}
+      <div className="staff-container" style={{ background: '#e0e0e0', padding: '30px', borderRadius: '10px', margin: '20px auto', width: 'fit-content', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2)' }}>
+        <MusicStaff 
+          exercise={gameState.exercise} 
+          currentIndex={gameState.index} 
+          wrongIndex={gameState.wrongIndex}
+          clef={gameState.clef}
+        />
+      </div>
 
+      {/* Horizontal piano at bottom */}
       <Piano 
         pressedKeys={pressedKeys} 
         onNoteOn={handleNoteOn} 
