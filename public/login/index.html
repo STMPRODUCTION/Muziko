@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sight Reading Login</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #00CC58; padding: 50px; }
+        .auth-container { max-width: 300px; margin: auto; border: 2px solid #00CC58; padding: 20px; border-radius: 8px; }
+        input { width: 90%; padding: 10px; margin-bottom: 10px; background: #000; border: 1px solid #00CC58; color: #fff; }
+        button { width: 100%; padding: 10px; cursor: pointer; background: #00CC58; border: none; font-weight: bold; margin-bottom: 5px; }
+        button.secondary { background: transparent; border: 1px solid #00CC58; color: #00CC58; }
+        #message { margin-top: 15px; font-size: 0.9em; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>Access MIDI Staff</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    
+    <button onclick="handleAuth('login')">Login</button>
+    <button class="secondary" onclick="handleAuth('signup')">Sign Up</button>
+    
+    <div id="message"></div>
+</div>
+
+<script>
+    async function handleAuth(type) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const messageDiv = document.getElementById('message');
+
+        if (!username || !password) {
+            messageDiv.textContent = "Fill in all fields, please.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:5000/${type}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                messageDiv.style.color = "#00CC58";
+                messageDiv.textContent = data.message;
+                
+                // If login was successful, redirect to your piano app
+                if (type === 'login') {
+                    setTimeout(() => {
+                        window.location.href = '/index.html'; // Adjust this to your actual app file
+                    }, 1000);
+                }
+            } else {
+                messageDiv.style.color = "red";
+                messageDiv.textContent = data.message;
+            }
+        } catch (err) {
+            messageDiv.textContent = "Server is offline. Try again later.";
+        }
+    }
+</script>
+
+</body>
+</html>
