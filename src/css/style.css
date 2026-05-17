@@ -19,7 +19,14 @@
       flex: 1;
       padding: 40px 20px;
       animation: fadeIn 1s ease-in;
-    }
+      }
+
+  .home-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: 0px;
+  }
 
     h1 {
       font-size: 3rem;
@@ -47,7 +54,7 @@
       background-color: transparent;
       color: #00CC58;
       border: 2px solid #00CC58;
-      padding: 12px 30px;
+      padding: 12px 34px;
       border-radius: 30px;
       font-size: 1.1rem;
       font-weight: bold;
@@ -70,7 +77,7 @@
       justify-content: space-between;
       align-items: center;
       font-size: 1rem;
-      font-weight: bold
+      font-weight: bold;
     }
 
     .footer-left {
@@ -127,15 +134,15 @@
     border: 2px solid #EFF7F8;
     border-radius: 6px;
     padding: 4px 6px;
-    font-size: 0.75rem;
-    font-family: 'Courier New', monospace;
+    font-size: 0.67rem;
+    font-family: 'Courier New';
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 4px;                     /* Less gap between flag/text/icon */
     min-width: auto;             /* Allow it to shrink based on content */
     width: auto;                 /* Button will now only be as wide as needed */
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     outline: none;
     }
 
@@ -147,7 +154,7 @@
     border: 2px solid #EFF7F8;
     border-radius: 6px;
     border-top: none;
-    max-height: 150px;
+    max-height: 10px;
     overflow-y: auto;
     min-width: 110px;
     opacity: 0;
@@ -231,12 +238,7 @@
         top: 15px;
         right: 15px;
       }
-      
-      .language-btn {
-        min-width: 10px;
-        font-size: 0.8rem;
-        padding: 4px 8px;
-      }
+  
     }
 
     @keyframes fadeIn {

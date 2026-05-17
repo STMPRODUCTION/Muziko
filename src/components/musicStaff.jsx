@@ -37,9 +37,5 @@ export default function MusicStaff({ exercise, currentIndex, wrongIndex, clef })
     }
   }, [exercise, currentIndex, wrongIndex, clef]);
 
-  return (
-    <div id="staff-container" style={{ background: '#f0f0f0', padding: '10px', borderRadius: '8px' }}>
-      <div ref={staffRef} id="staff"></div>
-    </div>
-  );
+  return <div ref={staffRef} />;
 }
