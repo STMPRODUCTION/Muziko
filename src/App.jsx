@@ -56,12 +56,29 @@ export default function App() {
     if (savedLang) setCurrentLang(savedLang);
   }, []);
 
+
+
   useEffect(() => {
     const s = schemes[scheme];
     document.documentElement.style.setProperty('--bg', s.bg);
     document.documentElement.style.setProperty('--accent1', s.accent1);
     document.documentElement.style.setProperty('--accent2', s.accent2);
     localStorage.setItem('colorScheme', scheme);
+
+    // Update SVG favicon colors
+    const svgElements = document.querySelectorAll('img[src*=".svg"]');
+    svgElements.forEach(el => {
+      fetch(el.src)
+        .then(r => r.text())
+        .then(svgText => {
+          const updated = svgText
+            .replace(/#00CC58/gi, s.accent1)
+            .replace(/#414231/gi, s.bg);
+          const blob = new Blob([updated], { type: 'image/svg+xml' });
+          el.src = URL.createObjectURL(blob);
+        });
+    });
+
   }, [scheme]);
 
   const handleLangChange = (lang) => {
@@ -80,9 +97,9 @@ export default function App() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '10px 20px',
-        background: 'rgba(65, 66, 49, 0.9)',
+        background: 'var(--bg, #414231)',
         backdropFilter: 'blur(6px)',
-        borderBottom: '1px solid rgba(0, 204, 88, 0.2)',
+        borderBottom: '1px solid var(--accent1, #414231)',
       }}>
         {/* Logo */}
         <div
@@ -95,7 +112,7 @@ export default function App() {
           onMouseEnter={e => { if (currentView === 'exercise') e.currentTarget.style.opacity = '0.7'; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
         >
-          <img src="/favicon.png" alt="Muziko" style={{ height: '28px', marginRight: '10px' }} />
+          <img src="/favicon.svg" alt="Muziko" style={{ height: '28px', marginRight: '10px' }} />
           <span style={{
             color: 'var(--accent1)',
             fontFamily: 'Courier New, monospace',

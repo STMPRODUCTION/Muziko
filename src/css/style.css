@@ -36,7 +36,7 @@
     .tagline {
       font-size: 1.2rem;
       font-weight: bold;
-      color: #a0dca3;
+      color: var(--accent2);
       margin-bottom: 30px;
       animation: pulse 2.5s infinite ease-in-out;
     }
