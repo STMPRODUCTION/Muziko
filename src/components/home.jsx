@@ -154,39 +154,6 @@ export default function Home({ onStartTraining }) {
 
   return (
     <div className="home-wrapper">
-      <div className="language-selector" onClick={(e) => e.stopPropagation()}>
-        <div className={`language-dropdown ${dropdownOpen ? 'open' : ''}`}>
-          <button className="language-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
-            <span className="language-text">
-              {languageOptionsList.find(opt => opt.lang === currentLang)?.code || 'EN'}
-            </span>
-            <svg className="language-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6,9 12,15 18,9"></polyline>
-            </svg>
-          </button>
-          {dropdownOpen && (
-            <div className="language-options" style={{ display: 'block' }}>
-              {languageOptionsList.map((option) => (
-                <button 
-                  key={option.lang}
-                  className={`language-option ${currentLang === option.lang ? 'selected' : ''}`}
-                  onClick={() => handleLanguageChange(option.lang)}
-                >
-                  <span>{option.code}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {isTranslating && (
-        <div className="translate-loading">
-          <div className="spinner"></div>
-          Translating...
-        </div>
-      )}
-      
       <div className="container">
         <h1>{t('welcome-title')}</h1>
         <div className="tagline">{t('tagline')}</div>

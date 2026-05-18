@@ -1,6 +1,6 @@
     body {
-      background-color: #414231;
-      color: #00CC58;
+      background-color: var(--bg, #414231);
+      color: var(--accent1, #00CC58);
       font-family: 'Courier New', Courier, monospace;
       margin: 0;
       padding: 0;
@@ -10,7 +10,7 @@
       min-height: 100vh;
     }
 
-    .container {
+  .container {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -20,7 +20,6 @@
       padding: 40px 20px;
       animation: fadeIn 1s ease-in;
       }
-
   .home-wrapper {
     display: flex;
     flex-direction: column;
@@ -52,8 +51,8 @@
 
     .start-btn {
       background-color: transparent;
-      color: #00CC58;
-      border: 2px solid #00CC58;
+      color: var(--accent1, #00CC58);
+      border: 2px solid var(--accent1, #00CC58);
       padding: 12px 34px;
       border-radius: 30px;
       font-size: 1.1rem;
@@ -64,14 +63,14 @@
     }
 
     .start-btn:hover {
-      background-color: #00CC58;
-      color: #414231;
+      background-color: var(--accent1, #00CC58);;
+      color: var(--bg, #00CC58);;
       transform: scale(1.05);
     }
 
     .footer {
-      background-color: #00CC58;
-      color: #414231;
+      background-color: var(--accent1, #00CC58);;
+      color: var(--bg, #00CC58);;
       padding: 10px 20px;
       display: flex;
       justify-content: space-between;
@@ -96,7 +95,7 @@
     }
 
     .footer a {
-      color: #414231;
+      color: var(--bg, #00CC58);;
       text-decoration: none;
     }
 
@@ -129,7 +128,7 @@
     }
 
     .language-btn {
-    background-color: #414231;
+    background-color: var(--bg, #00CC58);;
     color: #EFF7F8;
     border: 2px solid #EFF7F8;
     border-radius: 6px;
@@ -150,7 +149,7 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #414231;
+    background-color: var(--bg, #00CC58);;
     border: 2px solid #EFF7F8;
     border-radius: 6px;
     border-top: none;
@@ -187,7 +186,7 @@
 
     .language-option:hover {
     background-color: #EFF7F8;
-    color: #414231;
+    color:var(--bg, #00CC58);;
     }
 
     .language-option.selected {
@@ -212,10 +211,10 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background-color: rgba(65, 66, 49, 0.9);
-      color: #00CC58;
+      color: var(--accent1, #00CC58);;
       padding: 20px;
       border-radius: 8px;
-      border: 2px solid #00CC58;
+      border: 2px solid var(--accent1, #00CC58);;
       z-index: 10000;
       display: none;
       font-family: 'Courier New', monospace;
@@ -223,7 +222,7 @@
 
     .spinner {
       border: 2px solid transparent;
-      border-top: 2px solid #00CD58;
+      border-top: 2px solid var(--accent1, #00CC58);;
       border-radius: 50%;
       width: 20px;
       height: 20px;

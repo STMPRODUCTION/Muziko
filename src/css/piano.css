@@ -13,8 +13,8 @@
 }
 
 #start, button {
-  background-color: #00CC58;
-  color: #414231;
+  background-color: var(--accent1, #00CC58);;
+  color: var(--bg, #00CC58);;
   border: none;
   padding: 12px 20px;
   border-radius: 10px;
@@ -26,7 +26,7 @@
 }
 
 #start:hover, button:hover {
-  background-color: #00aa45;
+  background-color: var(--accent2, #00CC58);;
   transform: scale(1.05);
 }
 

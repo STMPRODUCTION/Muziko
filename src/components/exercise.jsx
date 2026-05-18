@@ -270,7 +270,6 @@ export default function Exercise({ onBack }) {
         <div className="controls">
           <button id="start" onClick={startExercise}>Start Exercise</button>
         </div>
-
         <div id="status" style={{ marginTop: '12px' }}>{status}</div>
         {deviceName && <div id="device-name">{deviceName}</div>}
 
@@ -285,28 +284,6 @@ export default function Exercise({ onBack }) {
 
         <div id="stats">
           Accuracy: {accuracy}% | Time: {elapsedTime}s
-        </div>
-
-        <div id="charts-container">
-          <div>
-            <div style={{ color: '#00CC58', fontSize: '0.85rem', marginBottom: '6px', textAlign: 'center' }}>
-              Accuracy Over Exercises
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#00CC58', fontSize: '0.7rem', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Accuracy %</span>
-              <canvas ref={accuracyCanvasRef} width={200} height={120} style={{ background: 'transparent', borderRadius: '4px' }} />
-            </div>
-          </div>
-
-          <div>
-            <div style={{ color: '#00CC58', fontSize: '0.85rem', marginBottom: '6px', textAlign: 'center' }}>
-              Time Per Exercise
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: '#00CC58', fontSize: '0.7rem', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Seconds</span>
-              <canvas ref={timeCanvasRef} width={200} height={120} style={{ background: 'transparent', borderRadius: '4px' }} />
-            </div>
-          </div>
         </div>
       </div>
 
