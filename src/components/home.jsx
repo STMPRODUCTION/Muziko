@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/style.css'; // Points to your CSS folder at the project root
+import NotesTutorial from './tutorial';
 
 const translations = {
   en: {
@@ -166,7 +167,7 @@ export default function Home({ onStartTraining }) {
           {t('start-btn')}
         </button>
       </div>
-
+        <NotesTutorial />
       <div className="footer">
         <div className="footer-left">
           <span><a href="#">{t('terms')}</a></span>

@@ -36,6 +36,8 @@ export default function Exercise({ onBack }) {
   const handleNoteOnRef = useRef(null);
   const handleNoteOffRef = useRef(null);
   const accuracyOverTimeRef = useRef([]);
+  const [pulseKey, setPulseKey] = useState(null);
+  const wrongCountRef = useRef(0);
 
   // MIDI detection and input listening
   useEffect(() => {
@@ -131,7 +133,6 @@ export default function Exercise({ onBack }) {
 
   const handleNoteOn = useCallback((midi) => {
     setPressedKeys(new Set([midi]));
-
     setGameState(prev => {
       if (prev.exercise.length === 0) return prev;
       const isCorrect = midi === prev.exercise[prev.index];
@@ -139,6 +140,17 @@ export default function Exercise({ onBack }) {
       const newCorrect = isCorrect ? prev.correct + 1 : prev.correct;
       accuracyOverTimeRef.current.push(Math.round((newCorrect / newAttempted) * 100));
       const newIndex = isCorrect ? prev.index + 1 : prev.index;
+      if (!isCorrect) {
+        wrongCountRef.current += 1;
+        if (wrongCountRef.current >= 5) {
+          wrongCountRef.current = 0;
+          const correctNote = prev.exercise[prev.index];
+          setPulseKey(correctNote);
+          setTimeout(() => setPulseKey(null), 500);
+        }
+      }
+    if (isCorrect) wrongCountRef.current = 0;
+
         return {
         ...prev,
         attempted: newAttempted,
@@ -288,11 +300,12 @@ export default function Exercise({ onBack }) {
       </div>
 
       <Piano
-      pressedKeys={pressedKeys}
-      onNoteOn={handleNoteOn}
-      onNoteOff={handleNoteOff}
-      onNoteChange={handleNoteChange}
-    />
+        pressedKeys={pressedKeys}
+        pulseKey={pulseKey}
+        onNoteOn={handleNoteOn}
+        onNoteOff={handleNoteOff}
+        onNoteChange={handleNoteChange}
+      />
     </div>
   );
 }

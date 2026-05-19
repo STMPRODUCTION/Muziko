@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+
 import '../css/piano.css';
 
 const PIANO_NOTE_NAMES = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
@@ -8,7 +9,7 @@ function midiToFreq(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-export default function Piano({ pressedKeys, onNoteOn, onNoteOff, onNoteChange }) {
+export default function Piano({ pressedKeys, pulseKey, onNoteOn, onNoteOff, onNoteChange }) {
   const wrapperRef = useRef(null);
   const audioCtxRef = useRef(null);
   
@@ -154,7 +155,7 @@ export default function Piano({ pressedKeys, onNoteOn, onNoteOff, onNoteChange }
         keys.push(
           <div
             key={midi}
-            className={`piano-key ${isPressed ? 'pressed' : ''}`}
+            className={`piano-key ${isPressed ? 'pressed' : ''} ${pulseKey === midi ? 'hint-pulse' : ''}`}
             onMouseDown={() => handleMouseDown(midi)}
             onMouseEnter={() => handleMouseEnter(midi)}
             onMouseUp={() => handleMouseUp(midi)}
@@ -169,7 +170,7 @@ export default function Piano({ pressedKeys, onNoteOn, onNoteOff, onNoteChange }
         keys.push(
           <div
             key={midi}
-            className={`piano-key black ${isPressed ? 'pressed' : ''}`}
+            className={`piano-key black ${isPressed ? 'pressed' : ''} ${pulseKey === midi ? 'hint-pulse' : ''}`}
             style={{ left: `${offset}px`, position: 'absolute' }}
             onMouseDown={() => handleMouseDown(midi)}
             onMouseEnter={() => handleMouseEnter(midi)}

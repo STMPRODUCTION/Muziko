@@ -441,3 +441,12 @@ canvas {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+@keyframes hintPulse {
+  0%, 100% { background-color: #fafafa; }
+  50% { background-color: var(--accent2, #a0dca3); }
+}
+
+.piano-key.hint-pulse {
+  animation: hintPulse 0.6s ease-in-out 2;
+}
