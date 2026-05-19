@@ -115,7 +115,6 @@ export default function ExerciseResults({ results, onNext, onBack }) {
       </div>
 
       <div className="results-actions">
-        <button className="results-btn" onClick={onBack}>← Home</button>
         <button className="results-btn" onClick={onNext}>Next Exercise →</button>
       </div>
     </div>

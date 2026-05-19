@@ -15,17 +15,15 @@ const NOTES = [
   { midi: 77, label: 'F5', key: 'f/5', annotation: 'F' },
 ];
 
-// White key midi numbers in range C4-F5
 const WHITE_MIDIS = [60,62,64,65,67,69,71,72,74,76,77];
-// Black key midi numbers and their offset index (after which white key)
 const BLACK_KEYS = [
-  { midi: 61, afterWhiteIndex: 0 }, // C#4 after C4
-  { midi: 63, afterWhiteIndex: 1 }, // D#4 after D4
-  { midi: 66, afterWhiteIndex: 3 }, // F#4 after F4
-  { midi: 68, afterWhiteIndex: 4 }, // G#4 after G4
-  { midi: 70, afterWhiteIndex: 5 }, // A#4 after A4
-  { midi: 73, afterWhiteIndex: 7 }, // C#5 after C5
-  { midi: 75, afterWhiteIndex: 8 }, // D#5 after D5
+  { midi: 61, afterWhiteIndex: 0 },
+  { midi: 63, afterWhiteIndex: 1 },
+  { midi: 66, afterWhiteIndex: 3 },
+  { midi: 68, afterWhiteIndex: 4 },
+  { midi: 70, afterWhiteIndex: 5 },
+  { midi: 73, afterWhiteIndex: 7 },
+  { midi: 75, afterWhiteIndex: 8 },
 ];
 
 const WHITE_KEY_W = 30;
@@ -43,6 +41,8 @@ export default function NotesTutorial() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fade, setFade] = useState(true);
   const [pressedMidi, setPressedMidi] = useState(null);
+  const [noteColor, setNoteColor] = useState('black'); // 'black' | 'green' | 'red'
+  const autoPlayingRef = useRef(false);
 
   const getAudio = () => {
     if (!audioCtxRef.current)
@@ -69,23 +69,30 @@ export default function NotesTutorial() {
     osc.stop(ctx.currentTime + duration); osc2.stop(ctx.currentTime + duration);
   };
 
+  // Auto-cycle
   useEffect(() => {
     const interval = setInterval(() => {
       setFade(false);
+      setNoteColor('black');
       setTimeout(() => {
         setCurrentIndex(i => {
           const next = (i + 1) % NOTES.length;
+          autoPlayingRef.current = true;
           playMidi(NOTES[next].midi);
           setPressedMidi(NOTES[next].midi);
-          setTimeout(() => setPressedMidi(null), 600);
+          setTimeout(() => {
+            setPressedMidi(null);
+            autoPlayingRef.current = false;
+          }, 600);
           return next;
         });
         setFade(true);
       }, 400);
-    }, 1800);
+    }, 2200);
     return () => clearInterval(interval);
   }, []);
 
+  // Draw staff
   useEffect(() => {
     if (!staffRef.current) return;
     const div = staffRef.current;
@@ -94,7 +101,6 @@ export default function NotesTutorial() {
     const renderer = new Renderer(div, Renderer.Backends.SVG);
     renderer.resize(280, 130);
     const ctx = renderer.getContext();
-
     const svg = div.querySelector('svg');
     if (svg) svg.style.background = 'transparent';
 
@@ -104,13 +110,32 @@ export default function NotesTutorial() {
 
     const note = NOTES[currentIndex];
     const vfNote = new StaveNote({ keys: [note.key], duration: 'q', clef: 'treble' });
-    vfNote.setStyle({ fillStyle: '#00CC58', strokeStyle: '#00CC58' });
+
+    const color = noteColor === 'green' ? '#00CC58' : noteColor === 'red' ? '#ff4444' : '#222222';
+    vfNote.setStyle({ fillStyle: color, strokeStyle: color });
 
     const voice = new Voice({ num_beats: 1, beat_value: 4 }).setStrict(false);
     voice.addTickables([vfNote]);
     new Formatter().joinVoices([voice]).format([voice], 180);
     voice.draw(ctx, stave);
-  }, [currentIndex]);
+  }, [currentIndex, noteColor]);
+
+  // Handle player pressing a key manually
+  const handlePlayerPress = (midi) => {
+    if (autoPlayingRef.current) return; // ignore if auto-playing
+    playMidi(midi, 0.5);
+    setPressedMidi(midi);
+    const correctMidi = NOTES[currentIndex].midi;
+    if (midi === correctMidi) {
+      setNoteColor('green');
+    } else {
+      setNoteColor('red');
+    }
+    setTimeout(() => {
+      setPressedMidi(null);
+      setNoteColor('black');
+    }, 700);
+  };
 
   const totalWhiteWidth = WHITE_MIDIS.length * WHITE_KEY_W;
 
@@ -121,7 +146,7 @@ export default function NotesTutorial() {
       margin: '48px auto 0',
       fontFamily: 'Courier New, monospace',
       color: 'var(--accent1, #00CC58)',
-      padding: '1px'
+      padding: '1px',
     }}>
       <div style={{
         background: 'rgba(255,255,255,0.85)',
@@ -140,10 +165,16 @@ export default function NotesTutorial() {
           transition: 'opacity 0.4s ease',
           minHeight: '52px',
         }}>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '3px' }}>
+          <div style={{
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            letterSpacing: '3px',
+            color: noteColor === 'green' ? '#00CC58' : noteColor === 'red' ? '#ff4444' : 'var(--bg, #00CC58)',
+            transition: 'color 0.2s ease',
+          }}>
             {NOTES[currentIndex].label}
           </div>
-          <div style={{ fontSize: '0.75rem', opacity: 0.6, letterSpacing: '1px' }}>
+          <div style={{ fontSize: '0.75rem', opacity: 0.6, letterSpacing: '1px', color: '#444' }}>
             {NOTES[currentIndex].annotation}
           </div>
         </div>
@@ -158,12 +189,20 @@ export default function NotesTutorial() {
           <div ref={staffRef} />
         </div>
 
-        {/* Mini Piano */}
+        {/* Hint text */}
         <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          marginTop: '20px',
+          textAlign: 'center',
+          fontSize: '0.72rem',
+          color: '#888',
+          marginTop: '4px',
+          marginBottom: '8px',
+          letterSpacing: '0.5px',
         }}>
+          Try pressing the correct key on the piano below
+        </div>
+
+        {/* Mini Piano */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
           <div style={{
             position: 'relative',
             width: `${totalWhiteWidth}px`,
@@ -171,12 +210,13 @@ export default function NotesTutorial() {
           }}>
             {/* White keys */}
             {WHITE_MIDIS.map((midi, i) => {
-              const isPressed = pressedMidi === midi;
+              const isAutoPressed = pressedMidi === midi && autoPlayingRef.current;
+              const isPlayerPressed = pressedMidi === midi && !autoPlayingRef.current;
               const isCurrentNote = NOTES[currentIndex].midi === midi;
               return (
                 <div
                   key={midi}
-                  onMouseDown={() => { playMidi(midi, 0.5); setPressedMidi(midi); }}
+                  onMouseDown={() => handlePlayerPress(midi)}
                   onMouseUp={() => setPressedMidi(null)}
                   onMouseLeave={() => setPressedMidi(null)}
                   style={{
@@ -185,12 +225,14 @@ export default function NotesTutorial() {
                     top: 0,
                     width: `${WHITE_KEY_W - 1}px`,
                     height: `${WHITE_KEY_H}px`,
-                    background: isPressed
-                      ? 'var(--accent1, #00CC58)'
-                      : isCurrentNote
-                        ? 'rgba(0,204,88,0.15)'
-                        : '#ffffff',
-                    border: '1px solid #ccc',
+                    background: isAutoPressed
+                      ? '#00CC58'
+                      : isPlayerPressed
+                        ? (midi === NOTES[currentIndex].midi ? '#00CC58' : '#ff4444')
+                        : isCurrentNote
+                          ? 'rgba(0,204,88,0.1)'
+                          : '#ffffff',
+                    border: isCurrentNote ? '1px solid rgba(0,204,88,0.4)' : '1px solid #ccc',
                     borderRadius: '0 0 4px 4px',
                     cursor: 'pointer',
                     zIndex: 1,
@@ -202,11 +244,9 @@ export default function NotesTutorial() {
                     paddingBottom: '4px',
                   }}
                 >
-                  {/* Key label */}
                   <span style={{
                     fontSize: '8px',
-                    color: isPressed ? '#fff' : '#999',
-                    fontFamily: 'Courier New, monospace',
+                    color: isAutoPressed || isPlayerPressed ? '#fff' : '#aaa',
                     pointerEvents: 'none',
                   }}>
                     {isCurrentNote ? NOTES[currentIndex].label : ''}
@@ -217,12 +257,13 @@ export default function NotesTutorial() {
 
             {/* Black keys */}
             {BLACK_KEYS.map(({ midi, afterWhiteIndex }) => {
-              const isPressed = pressedMidi === midi;
+              const isAutoPressed = pressedMidi === midi && autoPlayingRef.current;
+              const isPlayerPressed = pressedMidi === midi && !autoPlayingRef.current;
               const leftPos = (afterWhiteIndex + 1) * WHITE_KEY_W - BLACK_KEY_W / 2 - 1;
               return (
                 <div
                   key={midi}
-                  onMouseDown={e => { e.stopPropagation(); playMidi(midi, 0.5); setPressedMidi(midi); }}
+                  onMouseDown={e => { e.stopPropagation(); handlePlayerPress(midi); }}
                   onMouseUp={e => { e.stopPropagation(); setPressedMidi(null); }}
                   onMouseLeave={e => { e.stopPropagation(); setPressedMidi(null); }}
                   style={{
@@ -231,7 +272,11 @@ export default function NotesTutorial() {
                     top: 0,
                     width: `${BLACK_KEY_W}px`,
                     height: `${BLACK_KEY_H}px`,
-                    background: isPressed ? 'var(--accent1, #00CC58)' : '#222',
+                    background: isAutoPressed
+                      ? '#00CC58'
+                      : isPlayerPressed
+                        ? (midi === NOTES[currentIndex].midi ? '#00CC58' : '#ff4444')
+                        : '#222',
                     borderRadius: '0 0 3px 3px',
                     cursor: 'pointer',
                     zIndex: 2,
@@ -249,7 +294,15 @@ export default function NotesTutorial() {
           {NOTES.map((_, i) => (
             <div
               key={i}
-              onClick={() => { setCurrentIndex(i); setFade(true); playMidi(NOTES[i].midi); setPressedMidi(NOTES[i].midi); setTimeout(() => setPressedMidi(null), 600); }}
+              onClick={() => {
+                setCurrentIndex(i);
+                setNoteColor('black');
+                setFade(true);
+                playMidi(NOTES[i].midi);
+                autoPlayingRef.current = true;
+                setPressedMidi(NOTES[i].midi);
+                setTimeout(() => { setPressedMidi(null); autoPlayingRef.current = false; }, 600);
+              }}
               style={{
                 width: i === currentIndex ? '18px' : '6px',
                 height: '6px',
@@ -265,7 +318,7 @@ export default function NotesTutorial() {
       </div>
 
       {/* Explanation */}
-      <div style={{ fontSize: '0.9rem', lineHeight: '1.9', opacity: 0.75, padding: '100px 4px' }}>
+      <div style={{ fontSize: '1rem', lineHeight: '2', opacity: 1,textAlign: 'center', padding: '0 4px' ,}}>
         <p style={{ margin: '0 0 10px' }}>
           <strong>Sheet music</strong> uses a staff — five horizontal lines — where each line and space represents a specific pitch. The higher a note sits on the staff, the higher it sounds.
         </p>

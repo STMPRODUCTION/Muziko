@@ -3,6 +3,8 @@ import Piano from './piano';
 import MusicStaff from './musicStaff';
 import '../css/piano.css';
 import ExerciseResults from './ExerciseResults';
+import ExerciseConfig from './ExerciseConfig';
+import { generateExercise } from './generateExercise';
 
 const t = {
   status_message: 'Click "Start Exercise" to begin',
@@ -38,6 +40,11 @@ export default function Exercise({ onBack }) {
   const accuracyOverTimeRef = useRef([]);
   const [pulseKey, setPulseKey] = useState(null);
   const wrongCountRef = useRef(0);
+  const [mode, setMode] = useState('classic');
+  const [difficulty, setDifficulty] = useState('easy');
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [score, setScore] = useState(0);
+  const stopAllRef = useRef(null);
 
   // MIDI detection and input listening
   useEffect(() => {
@@ -96,30 +103,59 @@ export default function Exercise({ onBack }) {
   }, []);
 
   const startExercise = () => {
-    accuracyOverTimeRef.current = [];
     const isTreble = Math.random() < 0.5;
-    const range = isTreble ? [57, 84] : [36, 64];
-    const notes = Array.from({ length: 8 }, () =>
-      Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0]
-    );
+    const clef = isTreble ? 'treble' : 'bass';
+    const notes = generateExercise(difficulty, clef);
 
     if (timerRef.current) clearInterval(timerRef.current);
     startTimeRef.current = Date.now();
     setElapsedTime(0);
-    timerRef.current = setInterval(() => {
-      setElapsedTime(((Date.now() - startTimeRef.current) / 1000).toFixed(1));
-    }, 100);
-
     setStatus('');
-    setGameState({
-      exercise: notes,
-      index: 0,
-      wrongIndex: -1,
-      clef: isTreble ? "treble" : "bass",
-      attempted: 0,
-      correct: 0
-    });
-  };
+
+    if (mode === 'timed') {
+      setTimeLeft(60);
+      setScore(0);
+      timerRef.current = setInterval(() => {
+        setTimeLeft(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setPressedKeys(new Set());
+            stopAllRef.current?.();
+            setGameState(prev => ({ ...prev, exercise: [] }));
+
+            setTimeout(() => {
+              setResults({
+                accuracy: score > 0 ? 100 : 0,
+                timeTaken: 60,
+                totalNotes: score,
+                correctNotes: score,
+                wrongAttempts: 0,
+                notesPerMinute: score,
+                clef,
+                accuracyOverTime: accuracyOverTimeRef.current,
+              });
+            }, 0);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } else {
+      // Classic mode — elapsed time counter
+      timerRef.current = setInterval(() => {
+        setElapsedTime(((Date.now() - startTimeRef.current) / 1000).toFixed(1));
+      }, 100);
+  }
+
+  setGameState({
+    exercise: notes,
+    index: 0,
+    wrongIndex: -1,
+    clef,
+    attempted: 0,
+    correct: 0
+  });
+};
 
   const onMIDIMessage = (event) => {
   const [status, note, velocity] = event.data;
@@ -161,31 +197,48 @@ export default function Exercise({ onBack }) {
     });
   }, []);
 
-   const handleNoteOff = useCallback((midi) => {
-  setPressedKeys(new Set());
+  const handleNoteOff = useCallback((midi, isMidi = false) => {
+      setPressedKeys(new Set());
 
-  setGameState(prev => {
-    if (prev.index >= prev.exercise.length && prev.exercise.length > 0) {
-      // exercise was just completed, show results
-      setTimeout(() => {
-        const timeTaken = parseFloat(((Date.now() - startTimeRef.current) / 1000).toFixed(1));
-        const acc = (prev.correct / prev.attempted) * 100;
-        const npm = (prev.exercise.length / timeTaken) * 60;
-        setResults({
-          accuracy: acc,
-          timeTaken,
-          totalNotes: prev.exercise.length,
-          correctNotes: prev.correct,
-          wrongAttempts: prev.attempted - prev.correct,
-          notesPerMinute: npm,
-          clef: prev.clef,
-          accuracyOverTime: [...accuracyOverTimeRef.current],
-        });
-      }, 0);
-    }
-    return prev;
-  });
-}, []);
+      setGameState(prev => {
+        if (prev.index >= prev.exercise.length && prev.exercise.length > 0) {
+          if (mode === 'timed') {
+            // auto-generate next exercise, increment score
+            setScore(s => s + prev.exercise.length);
+            const newClef = Math.random() < 0.5 ? 'treble' : 'bass';
+            const newNotes = generateExercise(difficulty, newClef);
+            setTimeout(() => {
+              setGameState({
+                exercise: newNotes,
+                index: 0,
+                wrongIndex: -1,
+                clef: newClef,
+                attempted: 0,
+                correct: 0,
+              });
+            }, 0);
+          } else {
+            // classic mode — show results
+            setTimeout(() => {
+              const timeTaken = parseFloat(((Date.now() - startTimeRef.current) / 1000).toFixed(1));
+              const acc = (prev.correct / prev.attempted) * 100;
+              const npm = (prev.exercise.length / timeTaken) * 60;
+              setResults({
+                accuracy: acc,
+                timeTaken,
+                totalNotes: prev.exercise.length,
+                correctNotes: prev.correct,
+                wrongAttempts: prev.attempted - prev.correct,
+                notesPerMinute: npm,
+                clef: prev.clef,
+                accuracyOverTime: [...accuracyOverTimeRef.current],
+              });
+            }, 0);
+          }
+        }
+        return prev;
+      });
+    }, [mode, difficulty]);
 
     const handleNoteChange = useCallback((prevMidi, newMidi) => {
       setPressedKeys(prev => {
@@ -278,7 +331,11 @@ export default function Exercise({ onBack }) {
     <div className="app-container">
       <div className="main-content">
         <h1>Muziko</h1>
-
+        <ExerciseConfig
+          mode={mode} setMode={setMode}
+          difficulty={difficulty} setDifficulty={setDifficulty}
+        />
+        
         <div className="controls">
           <button id="start" onClick={startExercise}>Start Exercise</button>
         </div>
@@ -295,7 +352,12 @@ export default function Exercise({ onBack }) {
         </div>
 
         <div id="stats">
-          Accuracy: {accuracy}% | Time: {elapsedTime}s
+          {mode === 'timed'
+            ? gameState.exercise.length > 0
+              ? `⏱ ${timeLeft}s | Notes: ${score}`
+              : 'Accuracy: 0% | Time: 0.0s'
+            : `Accuracy: ${accuracy}% | Time: ${elapsedTime}s`
+          }
         </div>
       </div>
 

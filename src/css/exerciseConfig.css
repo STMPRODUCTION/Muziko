@@ -1,0 +1,47 @@
+.config-bar-wrapper {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 10px 0 18px;
+}
+
+.config-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 30px;
+  padding: 4px 6px;
+  gap: 2px;
+}
+
+.config-option {
+  background: transparent;
+  border: none;
+  color: var(--accent1, #00CC58);
+  opacity: 0.4;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.config-option:hover {
+  opacity: 0.7;
+}
+
+.config-option.active {
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  color: var(--accent1, #00CC58);
+}
+
+.config-icon {
+  font-size: 0.85rem;
+}

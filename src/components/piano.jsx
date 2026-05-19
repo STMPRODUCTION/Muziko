@@ -9,7 +9,7 @@ function midiToFreq(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-export default function Piano({ pressedKeys, pulseKey, onNoteOn, onNoteOff, onNoteChange }) {
+export default function Piano({ pressedKeys, pulseKey, onNoteOn, onNoteOff, onNoteChange, stopAllRef }) {
   const wrapperRef = useRef(null);
   const audioCtxRef = useRef(null);
   
@@ -24,6 +24,22 @@ export default function Piano({ pressedKeys, pulseKey, onNoteOn, onNoteOff, onNo
       wrapper.scrollLeft = (wrapper.scrollWidth - wrapper.clientWidth) / 2;
     }
 
+    if (stopAllRef) {
+    stopAllRef.current = () => {
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
+      Object.keys(activeNodes.current).forEach(midi => {
+        try {
+          const { osc, osc2, gainNode } = activeNodes.current[midi];
+          gainNode.gain.cancelScheduledValues(ctx.currentTime);
+          gainNode.gain.setValueAtTime(0, ctx.currentTime); // instant silence
+          osc.stop(ctx.currentTime);
+          osc2.stop(ctx.currentTime);
+        } catch(e) {}
+      });
+      activeNodes.current = {};
+    };
+  }
     // FIXED: Global window mouse handling securely catches all releases to stop stuck notes
     const handleGlobalMouseUp = () => {
       if (!isMouseDown.current) return;
@@ -45,6 +61,8 @@ export default function Piano({ pressedKeys, pulseKey, onNoteOn, onNoteOff, onNo
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, [onNoteOff]);
+
+
 
   const getAudioCtx = () => {
     if (!audioCtxRef.current) {
