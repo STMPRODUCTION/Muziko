@@ -45,6 +45,9 @@ export default function Exercise({ onBack }) {
   const [timeLeft, setTimeLeft] = useState(60);
   const [score, setScore] = useState(0);
   const stopAllRef = useRef(null);
+  const timedTotalAttempted = useRef(0);
+  const timedTotalCorrect = useRef(0);
+  const scoreRef = useRef(0);
 
   // MIDI detection and input listening
   useEffect(() => {
@@ -111,10 +114,13 @@ export default function Exercise({ onBack }) {
     startTimeRef.current = Date.now();
     setElapsedTime(0);
     setStatus('');
-
+    accuracyOverTimeRef.current = [];
+    scoreRef.current = 0; 
     if (mode === 'timed') {
       setTimeLeft(60);
       setScore(0);
+      timedTotalAttempted.current = 0;
+      timedTotalCorrect.current = 0;
       timerRef.current = setInterval(() => {
         setTimeLeft(t => {
           if (t <= 1) {
@@ -125,12 +131,14 @@ export default function Exercise({ onBack }) {
 
             setTimeout(() => {
               setResults({
-                accuracy: score > 0 ? 100 : 0,
+                accuracy: timedTotalAttempted.current > 0
+                ? (timedTotalCorrect.current / timedTotalAttempted.current) * 100
+                : 0,
                 timeTaken: 60,
                 totalNotes: score,
                 correctNotes: score,
                 wrongAttempts: 0,
-                notesPerMinute: score,
+                notesPerMinute: scoreRef.current,
                 clef,
                 accuracyOverTime: accuracyOverTimeRef.current,
               });
@@ -158,14 +166,14 @@ export default function Exercise({ onBack }) {
 };
 
   const onMIDIMessage = (event) => {
-  const [status, note, velocity] = event.data;
-  const type = status & 0xf0;
-  if (type === 0x90 && velocity > 0) {
-    handleNoteOnRef.current?.(note, true);  // ← isMidi = true
-  } else if (type === 0x80 || (type === 0x90 && velocity === 0)) {
-    handleNoteOffRef.current?.(note, true); // ← isMidi = true
-  }
-};
+    const [status, note, velocity] = event.data;
+    const type = status & 0xf0;
+    if (type === 0x90 && velocity > 0) {
+      handleNoteOnRef.current?.(note, true);  // ← isMidi = true
+    } else if (type === 0x80 || (type === 0x90 && velocity === 0)) {
+      handleNoteOffRef.current?.(note, true); // ← isMidi = true
+    }
+  };
 
   const handleNoteOn = useCallback((midi) => {
     setPressedKeys(new Set([midi]));
@@ -174,20 +182,36 @@ export default function Exercise({ onBack }) {
       const isCorrect = midi === prev.exercise[prev.index];
       const newAttempted = prev.attempted + 1;
       const newCorrect = isCorrect ? prev.correct + 1 : prev.correct;
-      accuracyOverTimeRef.current.push(Math.round((newCorrect / newAttempted) * 100));
       const newIndex = isCorrect ? prev.index + 1 : prev.index;
-      if (!isCorrect) {
+
+      if (isCorrect) {
+        wrongCountRef.current = 0;
+      } else {
         wrongCountRef.current += 1;
-        if (wrongCountRef.current >= 5) {
-          wrongCountRef.current = 0;
+        if (wrongCountRef.current >= 3) {
           const correctNote = prev.exercise[prev.index];
-          setPulseKey(correctNote);
-          setTimeout(() => setPulseKey(null), 500);
+          setTimeout(() => {
+            setPulseKey(correctNote);
+            setTimeout(() => setPulseKey(null), 1200);
+          }, 0);
+          wrongCountRef.current = 0;
         }
       }
-    if (isCorrect) wrongCountRef.current = 0;
 
-        return {
+      setTimeout(() => {
+        if (mode === 'timed') {
+          timedTotalAttempted.current += 1;
+          if (isCorrect) timedTotalCorrect.current += 1;
+          const cumulativeAcc = Math.round((timedTotalCorrect.current / timedTotalAttempted.current) * 100);
+          accuracyOverTimeRef.current.push(cumulativeAcc);
+        } else {
+          accuracyOverTimeRef.current.push(
+            Math.round((newCorrect / newAttempted) * 100)
+          );
+        }
+      }, 0);
+
+      return {
         ...prev,
         attempted: newAttempted,
         correct: newCorrect,
@@ -195,7 +219,7 @@ export default function Exercise({ onBack }) {
         wrongIndex: isCorrect ? -1 : prev.index
       };
     });
-  }, []);
+  }, [mode]);
 
   const handleNoteOff = useCallback((midi, isMidi = false) => {
       setPressedKeys(new Set());
@@ -204,7 +228,11 @@ export default function Exercise({ onBack }) {
         if (prev.index >= prev.exercise.length && prev.exercise.length > 0) {
           if (mode === 'timed') {
             // auto-generate next exercise, increment score
-            setScore(s => s + prev.exercise.length);
+            setScore(s => {
+              const next = s + prev.exercise.length;
+              scoreRef.current = next;
+              return next;
+            });
             const newClef = Math.random() < 0.5 ? 'treble' : 'bass';
             const newNotes = generateExercise(difficulty, newClef);
             setTimeout(() => {
@@ -253,72 +281,15 @@ export default function Exercise({ onBack }) {
   useEffect(() => { handleNoteOnRef.current = handleNoteOn; }, [handleNoteOn]);
   useEffect(() => { handleNoteOffRef.current = handleNoteOff; }, [handleNoteOff]);
 
-  // Draw accuracy chart
-  useEffect(() => {
-    const canvas = accuracyCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-    ctx.strokeStyle = '#00CC58';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, W, H);
 
-    if (accuracyHistory.length === 0) {
-      ctx.fillStyle = '#00CC58';
-      ctx.font = '12px Courier New';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data available', W / 2, H / 2);
-      return;
-    }
-
-    const pad = 20;
-    ctx.beginPath();
-    ctx.strokeStyle = '#00CC58';
-    ctx.lineWidth = 2;
-    accuracyHistory.forEach((v, i) => {
-      const x = pad + (i / (accuracyHistory.length - 1 || 1)) * (W - pad * 2);
-      const y = H - pad - (v / 100) * (H - pad * 2);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-  }, [accuracyHistory]);
-
-  // Draw time chart
-  useEffect(() => {
-    const canvas = timeCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-    ctx.strokeStyle = '#00CC58';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, W, H);
-
-    if (timeHistory.length === 0) {
-      ctx.fillStyle = '#00CC58';
-      ctx.font = '12px Courier New';
-      ctx.textAlign = 'center';
-      ctx.fillText('No data available', W / 2, H / 2);
-      return;
-    }
-
-    const pad = 20;
-    const maxT = Math.max(...timeHistory);
-    ctx.beginPath();
-    ctx.strokeStyle = '#00CC58';
-    ctx.lineWidth = 2;
-    timeHistory.forEach((v, i) => {
-      const x = pad + (i / (timeHistory.length - 1 || 1)) * (W - pad * 2);
-      const y = H - pad - (v / maxT) * (H - pad * 2);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-  }, [timeHistory]);
-
-  const accuracy = gameState.attempted > 0
+  const accuracy = mode === 'timed'
+  ? timedTotalAttempted.current > 0
+    ? Math.round((timedTotalCorrect.current / timedTotalAttempted.current) * 100)
+    : 0
+  : gameState.attempted > 0
     ? Math.round((gameState.correct / gameState.attempted) * 100)
     : 0;
+
 
   if (results) return (
     <ExerciseResults
@@ -361,12 +332,13 @@ export default function Exercise({ onBack }) {
         </div>
       </div>
 
-      <Piano
+     <Piano
         pressedKeys={pressedKeys}
         pulseKey={pulseKey}
         onNoteOn={handleNoteOn}
         onNoteOff={handleNoteOff}
         onNoteChange={handleNoteChange}
+        stopAllRef={stopAllRef}
       />
     </div>
   );

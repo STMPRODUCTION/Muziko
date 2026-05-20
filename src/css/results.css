@@ -53,17 +53,19 @@
 
 .results-chart canvas {
   border-radius: 10px;
+  background: var(--bg, #414231);
 }
 
 .results-bottom {
   display: flex;
-  gap: 120px;
+  gap: 60px;
   margin-top: 3px;
   margin-left: 200px;
   flex-wrap: wrap;
   justify-content: center;
   border-top: 2px solid rgba(0, 0, 0, 0.25);
   padding-top: 10px;
+  padding-bottom: 100px;
   width: 100%;
   max-width: 700px;
 }
@@ -90,11 +92,11 @@
 
 .results-btn {
   background: transparent;
-  border: 2px solid #1a3d2b;
+  border: 0px solid #1a3d2b;
   color: var(--bg);
   padding: 8px 20px;
   border-radius: 15px;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: bold;
   cursor: pointer;
   font-family: 'Courier New', monospace;

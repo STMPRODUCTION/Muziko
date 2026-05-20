@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Renderer, Stave, StaveNote, Accidental, Voice, Formatter } from 'vexflow';
+import { Renderer, Stave, StaveNote, Voice, Formatter } from 'vexflow';
 
 const NOTES = [
   { midi: 60, label: 'C4', key: 'c/4', annotation: 'Middle C' },
@@ -36,7 +36,8 @@ function midiToFreq(midi) {
 }
 
 export default function NotesTutorial() {
-  const staffRef = useRef(null);
+  const staffContainerRef = useRef(null);
+  const notesContainerRef = useRef(null);
   const audioCtxRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -78,7 +79,6 @@ export default function NotesTutorial() {
         setCurrentIndex(i => {
           const next = (i + 1) % NOTES.length;
           autoPlayingRef.current = true;
-          playMidi(NOTES[next].midi);
           setPressedMidi(NOTES[next].midi);
           setTimeout(() => {
             setPressedMidi(null);
@@ -92,11 +92,11 @@ export default function NotesTutorial() {
     return () => clearInterval(interval);
   }, []);
 
-  // Draw staff
+  // 1. Initialize permanent background elements (Staff & Clef)
   useEffect(() => {
-    if (!staffRef.current) return;
-    const div = staffRef.current;
-    while (div.firstChild) div.removeChild(div.firstChild);
+    if (!staffContainerRef.current) return;
+    const div = staffContainerRef.current;
+    div.innerHTML = ''; 
 
     const renderer = new Renderer(div, Renderer.Backends.SVG);
     renderer.resize(280, 130);
@@ -104,25 +104,45 @@ export default function NotesTutorial() {
     const svg = div.querySelector('svg');
     if (svg) svg.style.background = 'transparent';
 
-    const stave = new Stave(20, 15, 230);
+    // Increased X starting coordinates and configured bounding width
+    const stave = new Stave(10, 15, 250);
     stave.addClef('treble');
     stave.setContext(ctx).draw();
+  }, []);
+
+  // 2. Redraw ONLY the specific active note with a leftward shift adjustment
+  useEffect(() => {
+    if (!notesContainerRef.current) return;
+    const div = notesContainerRef.current;
+    div.innerHTML = ''; 
+
+    const renderer = new Renderer(div, Renderer.Backends.SVG);
+    renderer.resize(280, 130);
+    const ctx = renderer.getContext();
+    const svg = div.querySelector('svg');
+    if (svg) svg.style.background = 'transparent';
+
+    // Matches the backdrop stave dimensions perfectly
+    const stave = new Stave(10, 15, 250);
 
     const note = NOTES[currentIndex];
     const vfNote = new StaveNote({ keys: [note.key], duration: 'q', clef: 'treble' });
+
+    vfNote.setXShift(60);
 
     const color = noteColor === 'green' ? '#00CC58' : noteColor === 'red' ? '#ff4444' : '#222222';
     vfNote.setStyle({ fillStyle: color, strokeStyle: color });
 
     const voice = new Voice({ num_beats: 1, beat_value: 4 }).setStrict(false);
     voice.addTickables([vfNote]);
-    new Formatter().joinVoices([voice]).format([voice], 180);
+    
+    new Formatter().joinVoices([voice]).format([voice], 10);
     voice.draw(ctx, stave);
   }, [currentIndex, noteColor]);
 
   // Handle player pressing a key manually
   const handlePlayerPress = (midi) => {
-    if (autoPlayingRef.current) return; // ignore if auto-playing
+    if (autoPlayingRef.current) return; 
     playMidi(midi, 0.5);
     setPressedMidi(midi);
     const correctMidi = NOTES[currentIndex].midi;
@@ -179,14 +199,29 @@ export default function NotesTutorial() {
           </div>
         </div>
 
-        {/* Staff */}
+        {/* Stacked Canvas Containers for Staff Stability & Smooth Note Fading */}
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          opacity: fade ? 1 : 0,
-          transition: 'opacity 0.4s ease',
+          position: 'relative',
+          height: '130px',
+          width: '280px',
+          margin: '0 auto',
         }}>
-          <div ref={staffRef} />
+          {/* Layer 1: Persistent Staff Structure */}
+          <div ref={staffContainerRef} style={{ position: 'absolute', inset: 0, zIndex: 1 }} />
+          
+          {/* Layer 2: Independent Note Overlay with Fade Effect */}
+          <div 
+            ref={notesContainerRef} 
+            style={{ 
+              position: 'absolute', 
+              inset: 0, 
+              zIndex: 2,
+              opacity: fade ? 1 : 0,
+              transition: 'opacity 0.4s ease',
+            }} 
+          />
         </div>
 
         {/* Hint text */}
@@ -318,7 +353,7 @@ export default function NotesTutorial() {
       </div>
 
       {/* Explanation */}
-      <div style={{ fontSize: '1rem', lineHeight: '2', opacity: 1,textAlign: 'center', padding: '0 4px' ,}}>
+      <div style={{ fontSize: '1rem', lineHeight: '2', opacity: 1, textAlign: 'center', padding: '0 4px' }}>
         <p style={{ margin: '0 0 10px' }}>
           <strong>Sheet music</strong> uses a staff — five horizontal lines — where each line and space represents a specific pitch. The higher a note sits on the staff, the higher it sounds.
         </p>

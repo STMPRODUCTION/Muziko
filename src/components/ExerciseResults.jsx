@@ -5,6 +5,15 @@ export default function ExerciseResults({ results, onNext, onBack }) {
   const chartRef = useRef(null);
   const [visible, setVisible] = useState(false);
 
+    const movingAverage = (data, window = 5) => {
+      return data.map((_, i) => {
+        const start = Math.max(0, i - Math.floor(window / 2));
+        const end = Math.min(data.length, start + window);
+        const slice = data.slice(start, end);
+        return slice.reduce((a, b) => a + b, 0) / slice.length;
+      });
+    };
+
   useEffect(() => {
     setTimeout(() => setVisible(true), 50);
   }, []);
@@ -17,7 +26,8 @@ export default function ExerciseResults({ results, onNext, onBack }) {
     ctx.clearRect(0, 0, W, H);
 
     const pad = { top: 20, bottom: 30, left: 40, right: 20 };
-    const data = results.accuracyOverTime;
+    const raw = results.accuracyOverTime;
+    const data = raw.length > 20 ? movingAverage(raw, 20) : raw;
     const maxY = 100;
 
     // Grid lines
@@ -112,10 +122,7 @@ export default function ExerciseResults({ results, onNext, onBack }) {
             <div className="results-bottom-stat-value">{value}</div>
           </div>
         ))}
-      </div>
-
-      <div className="results-actions">
-        <button className="results-btn" onClick={onNext}>Next Exercise →</button>
+        <button className="results-btn" onClick={onNext}>&gt;</button>
       </div>
     </div>
   );

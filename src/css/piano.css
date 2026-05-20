@@ -89,6 +89,48 @@
   user-select: none;
 }
 
+/* Octave Indicator Badge Dashboard Layout */
+.octave-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.octave-label-text {
+  color: #8c8c9a;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.octave-btn {
+  background: #1e1e24;
+  border: 1px solid #3a3a4a;
+  color: #a0a0b0;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.octave-btn:hover {
+  background: #2a2a35;
+  color: #fff;
+}
+
+.octave-btn.active {
+  background: #8b0000;
+  color: #ffffff;
+  border-color: #ff3333;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
+
 #status,
 #device-name,
 #exercise-info,
@@ -145,18 +187,24 @@
   right: 0;
   width: 100%;
   overflow-x: auto;
-  padding: 10px 0;
-  background-color: #2e2f25;
-  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
+  padding: 14px 0 0;
+  background: linear-gradient(180deg, #1a1b14 0%, #0f0f0a 100%);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
   z-index: 1000;
   scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+#virtual-piano-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 .piano-scroll-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   min-width: 100%;
   width: max-content;
+  padding-bottom: 14px;
 }
 
 .piano-spacer-start,
@@ -171,37 +219,110 @@
   flex-wrap: nowrap;
   height: 140px;
   user-select: none;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
 }
 
+/* ---- WHITE KEYS ---- */
 .piano-key {
   width: 40px;
   height: 140px;
-  border: 1px solid #000;
+  border: none;
   box-sizing: border-box;
-  background: #fafafa;
+  background: linear-gradient(180deg, #f5f5f0 0%, #e8e8e0 60%, #d8d8ce 100%);
   position: relative;
   z-index: 1;
   cursor: pointer;
   flex: 0 0 40px;
+  border-radius: 0 0 6px 6px;
+  box-shadow:
+    inset -1px 0 0 rgba(0,0,0,0.12),
+    inset 1px 0 0 rgba(255,255,255,0.9),
+    0 4px 6px rgba(0,0,0,0.3),
+    0 1px 0 #999;
+  transition: background 0.05s ease, box-shadow 0.05s ease, transform 0.05s ease;
 }
 
-.piano-key.black {
-  width: 28px;
-  height: 90px;
-  background: #333;
-  position: absolute;
-  z-index: 2;
-  top: 0;
+.piano-key:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0e8 60%, #e0e0d8 100%);
 }
 
 .piano-key:active,
 .piano-key.pressed {
-  background: #ccc;
+  background: linear-gradient(180deg, var(--accent1, #00CC58) 0%, var(--accent2) 100%);
+  box-shadow:
+    inset -1px 0 0 rgba(0,0,0,0.2),
+    inset 0 4px 8px rgba(0,0,0,0.2),
+    0 2px 3px rgba(0,0,0,0.3);
+  transform: translateY(2px);
+}
+
+/* ---- BLACK KEYS ---- */
+.piano-key.black {
+  width: 26px;
+  height: 88px;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 40%, #111 100%);
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  border-radius: 0 0 5px 5px;
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,0.07),
+    inset -1px 0 0 rgba(0,0,0,0.5),
+    0 6px 10px rgba(0,0,0,0.6),
+    0 2px 4px rgba(0,0,0,0.8);
+  transition: background 0.05s ease, box-shadow 0.05s ease, transform 0.05s ease;
+}
+
+.piano-key.black:hover {
+  background: linear-gradient(180deg, #333 0%, #222 40%, #181818 100%);
 }
 
 .piano-key.black:active,
 .piano-key.black.pressed {
-  background: #555;
+  background: linear-gradient(180deg, var(--accent1, #00CC58) 0%, var(--accent2) 100%);
+  box-shadow:
+    inset 0 3px 6px rgba(0,0,0,0.4),
+    0 3px 5px rgba(0,0,0,0.5);
+  transform: translateY(2px);
+}
+
+/* ---- NOTE LABEL (C dots) ---- */
+.note-label {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 50%;
+  font-size: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.piano-key.pressed .note-label,
+.piano-key:active .note-label {
+  background: rgba(255,255,255,0.5);
+}
+
+/* ---- HINT PULSE ---- */
+@keyframes hintPulse {
+  0%, 100% { background: linear-gradient(180deg, #f5f5f0 0%, #e8e8e0 60%, #d8d8ce 100%); }
+  50% { background: linear-gradient(180deg, var(--accent2, #a0dca3) 0%, #80c883 100%); }
+}
+
+@keyframes hintPulseBlack {
+  0%, 100% { background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 40%, #111 100%); }
+  50% { background: linear-gradient(180deg, var(--accent2, #a0dca3) 0%, #80c883 100%); }
+}
+
+.piano-key.hint-pulse {
+  animation: hintPulse 0.6s ease-in-out 2;
+}
+
+.piano-key.black.hint-pulse {
+  animation: hintPulseBlack 0.6s ease-in-out 2;
 }
 
 canvas {
@@ -429,7 +550,6 @@ canvas {
   }
 }
 
-/* High DPI screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   canvas {
     image-rendering: -webkit-optimize-contrast;
@@ -440,13 +560,4 @@ canvas {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-@keyframes hintPulse {
-  0%, 100% { background-color: #fafafa; }
-  50% { background-color: var(--accent2, #a0dca3); }
-}
-
-.piano-key.hint-pulse {
-  animation: hintPulse 0.6s ease-in-out 2;
 }
