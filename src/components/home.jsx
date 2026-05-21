@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import '../css/style.css'; // Points to your CSS folder at the project root
 import NotesTutorial from './tutorial';
 
@@ -17,8 +17,8 @@ const translations = {
   es: {
     'welcome-title': 'Bienvenido a Muziko',
     'tagline': 'Practica. Toca. Progresa.',
-    'description-1': 'Muziko is one of the best ways to sharpen your sight-reading skills and grow as a musician.',
-    'description-2': 'Se conecta perfectamente a cualquier instrumento digital habilitado para MIDI, como un piano o guitarra MIDI, и genera partituras musicales reales en tiempo real.',
+    'description-1': 'Muziko es una de las mejores maneras de perfeccionar tus habilidades de lectura a primera vista y crecer como músico.',
+    'description-2': 'Se conecta perfectamente a cualquier instrumento digital habilitado para MIDI, como un piano o guitarra MIDI, y genera partituras musicales reales en tiempo real.',
     'description-3': 'Simplemente toca las notas que ves, y Muziko te proporcionará comentarios instantáneos sobre tu precisión, ayudándote a mejorar nota por nota.',
     'start-btn': 'Comenzar Entrenamiento',
     'terms': 'Términos de Servicio',
@@ -62,7 +62,7 @@ const translations = {
     'welcome-title': 'Bem-vindo ao Muziko',
     'tagline': 'Pratique. Toque. Progrida.',
     'description-1': 'Muziko é uma das melhores maneiras de aprimorar suas habilidades de leitura à primeira vista e crescer como músico.',
-    'description-2': 'Ele se conecta perfeitamente a qualquer instrumento digital compatível com MIDI - como um piano ou guitarra MIDI - e gera partituras reais em tempo real.',
+    'description-2': 'Ele se conecta perfeitamente a qualquer instrumento digital compatível com MIDI - como un piano ou guitarra MIDI - e gera partituras reais em tempo real.',
     'description-3': 'Basta tocar as notas que você vê e o Muziko fornecerá feedback instantâneo sobre sua precisão, ajudando você a melhorar nota por nota.',
     'start-btn': 'Iniciar Treinamento',
     'terms': 'Termos de Serviço',
@@ -115,43 +115,11 @@ const translations = {
   }
 };
 
-const languageOptionsList = [
-  { lang: 'en', code: 'EN' }, { lang: 'es', code: 'ES' }, { lang: 'fr', code: 'FR' },
-  { lang: 'de', code: 'DE' }, { lang: 'it', code: 'IT' }, { lang: 'ro', code: 'RO' },
-  { lang: 'pt', code: 'PT' }, { lang: 'pl', code: 'PL' }, { lang: 'hu', code: 'HU' },
-  { lang: 'ru', code: 'RU' }
-];
-
-export default function Home({ onStartTraining }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState('en');
-  const [isTranslating, setIsTranslating] = useState(false);
-
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    if (savedLanguage && translations[savedLanguage]) {
-      setCurrentLang(savedLanguage);
-    }
-  }, []);
-
+// FIX: Destructure 'currentLang' directly from incoming component props
+export default function Home({ onStartTraining, currentLang = 'en' }) {
+  
+  // FIX: Read translations directly out of the prop so updates happen live instantly!
   const t = (key) => translations[currentLang]?.[key] || translations['en'][key];
-
-  const handleLanguageChange = (lang) => {
-    if (lang === currentLang) { setDropdownOpen(false); return; }
-    setIsTranslating(true);
-    setDropdownOpen(false);
-    setTimeout(() => {
-      setCurrentLang(lang);
-      localStorage.setItem('selectedLanguage', lang);
-      setIsTranslating(false);
-    }, 500);
-  };
-
-  useEffect(() => {
-    const handleOutsideClick = () => setDropdownOpen(false);
-    window.addEventListener('click', handleOutsideClick);
-    return () => window.removeEventListener('click', handleOutsideClick);
-  }, []);
 
   return (
     <div className="home-wrapper">
@@ -167,7 +135,7 @@ export default function Home({ onStartTraining }) {
           {t('start-btn')}
         </button>
       </div>
-        <NotesTutorial />
+      <NotesTutorial currentLang={currentLang} />
       <div className="footer">
         <div className="footer-left">
           <span><a href="#">{t('terms')}</a></span>

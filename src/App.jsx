@@ -3,13 +3,13 @@ import Home from './components/home';
 import Exercise from './components/exercise';
 
 const schemes = {
-  classic: {
+  night: {
     name: 'Classic',
     bg: '#414231',
     accent1: '#00CC58',
     accent2: '#a0dca3',
   },
-  night: {
+  classic: {
     name: 'Night',
     bg: '#1a1a2e',
     accent1: '#e94560',
@@ -55,8 +55,6 @@ export default function App() {
     const savedLang = localStorage.getItem('selectedLanguage');
     if (savedLang) setCurrentLang(savedLang);
   }, []);
-
-
 
   useEffect(() => {
     const s = schemes[scheme];
@@ -222,6 +220,7 @@ export default function App() {
               </div>
             )}
           </div>
+          
           {/* Color scheme picker */}
           <div style={{ position: 'relative' }}>
             <button
@@ -285,7 +284,7 @@ export default function App() {
         <Home onStartTraining={() => setCurrentView('exercise')} currentLang={currentLang} />
       )}
       {currentView === 'exercise' && (
-        <Exercise onBack={() => setCurrentView('home')} />
+        <Exercise onBack={() => setCurrentView('home')} currentLang={currentLang} />
       )}
     </>
   );
